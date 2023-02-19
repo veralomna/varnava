@@ -215,7 +215,7 @@ export class BackendInstaller {
         const output = spawnSync(this.pipScopedExecPath, [
             "install", "-v", "-U", "git+https://github.com/facebookresearch/xformers.git@main#egg=xformers"
         ], {
-            shell: "C:\\Windows\\SysWOW64\\WindowsPowerShell\\v1.0\\powershell.exe"
+            shell: process.platform === "win32" ? "C:\\Windows\\SysWOW64\\WindowsPowerShell\\v1.0\\powershell.exe" : undefined
         }).output.toString()
 
         console.log(output)
