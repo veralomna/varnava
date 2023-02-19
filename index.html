@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,400;0,600;1,300;1,400;1,600;1,800&family=Oswald:wght@200;300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@100;400;500&display=swap" rel="stylesheet" />
+    <title>Varnava</title>
+  </head>
+  <body class="bg-neutral-900">
+    <div id="app"></div>
+    <script type="module" lang="ts" src="/src/main.tsx"></script>
+
+    <svg style="visibility: hidden; position: absolute;" width="0" height="0" xmlns="http://www.w3.org/2000/svg" version="1.1">
+      <defs>
+          <filter id="goo"><feGaussianBlur in="SourceGraphic" stdDeviation="1" result="blur" />    
+              <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 19 -9" result="goo" />
+              <feComposite in="SourceGraphic" in2="goo" operator="atop"/>
+          </filter>
+      </defs>
+    </svg>
+  </body>
+</html>
