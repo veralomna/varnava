@@ -1,0 +1,48 @@
+.vscode
+
+# Releases & builds
+build
+
+# Vue/TS/JS
+
+node_modules
+dist
+.DS_Store
+
+## Compiled JavaScript files
+dist/**/*.js
+dist/**/*.js.map
+
+# Typescript v1 declaration files
+typings/
+
+node_modules/
+
+!*.config.js
+
+# Python
+
+server/data/**/*
+
+__pycache__/
+*.py[cod]
+*$py.class
+
+*.so
+
+.Python
+eggs/
+.eggs/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+pip-log.txt
+pip-delete-this-directory.txt

@@ -1,0 +1,36 @@
+{
+  "name": "varnava",
+  "description": "Varnava is an asset curation tool powered by Stable Diffusion.",
+  "author": "VERALOMNA",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "main": "app.cjs",
+  "scripts": {
+    "dev": "node ./scripts/start-dev-server.js",
+    "dev:app": "node ./scripts/start-dev-app.js",
+    "build": "node ./scripts/build-app.js"
+  },
+  "dependencies": {
+    "@heroicons/vue": "^2.0.13",
+    "electron-store": "^8.1.0",
+    "get-port": "^6.1.2",
+    "luxon": "^3.0.4",
+    "node-fetch": "^3.3.0",
+    "vue": "^3.2.45",
+    "vue-router": "^4.1.5"
+  },
+  "devDependencies": {
+    "@types/luxon": "^3.0.1",
+    "@types/node": "^18.11.10",
+    "@vitejs/plugin-vue-jsx": "^2.1.0-beta.0",
+    "autoprefixer": "^10.4.12",
+    "electron": "^23.0.0",
+    "electron-builder": "^23.6.0",
+    "postcss": "^8.4.18",
+    "tailwindcss": "^3.1.8",
+    "typescript": "^4.6.4",
+    "vite": "^3.1.0",
+    "vue-tsc": "^0.40.4"
+  }
+}
