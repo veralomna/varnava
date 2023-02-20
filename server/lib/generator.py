@@ -285,14 +285,19 @@ class ImageGenerator:
         pipe = pipe.to("cuda")
 
         if is_xformers_available():
+            print("[GEN] Xformers is enabled")
             pipe.enable_xformers_memory_efficient_attention()
+        else:
+            print("[GEN] Xformers is NOT enabled")
 
         if settings.type == ImageGeneratorTaskType.upscale:
+            print("[GEN] Attention slicing is enabled")
             pipe.enable_attention_slicing()
             pipe.enable_sequential_cpu_offload()
 
         # TODO: create better mapping for this size
         if self.total_vram_amount <= 17:
+            print("[GEN] Attention slicing is enabled")
             pipe.enable_attention_slicing()
 
         self.pipe = pipe

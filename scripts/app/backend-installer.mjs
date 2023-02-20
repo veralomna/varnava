@@ -23,6 +23,7 @@ export class BackendInstaller {
         {"name": "sanic-ext", "version": "22.12.0"},
         {"name": "tqdm", "version": "4.64.1"}, 
         {"name": "mashumaro", "version": "3.3"},
+        {"name": "wheel", "version": "0.38.4"},
         {"name": "torch", "command" : ["--pre", "torch", "torchaudio", "torchvision", "--index-url", "https://download.pytorch.org/whl/nightly/cu118"]},
     ]
 
@@ -76,8 +77,9 @@ export class BackendInstaller {
 
         this.progressTitle = "downloading-dependencies"
 
-        await this.downloadPythonPackages(this.progress.child(0.3))
-        await this.downloadXformers(this.progress.child(0.19))
+        // TODO: install Xformers via 
+        // %LOCALAPPDATA%\veralomna\varnava\python-env\Scripts\pip.exe install -v -U git+https://github.com/facebookresearch/xformers.git@main#egg=xformers
+        await this.downloadPythonPackages(this.progress.child(0.49))
 
         this.progressTitle = "ready-to-launch"
         
@@ -98,11 +100,10 @@ export class BackendInstaller {
         this.log("Downloading Python")
 
         const installerPath = path.join(this.dataPath, "conda-installer.exe")
-        const url = "https://repo.anaconda.com/miniconda/Miniconda3-py310_23.1.0-1-Windows-x86_64.exe"
         
         progress.update(0.1)
 
-        const response = await fetch(url)
+        const response = await fetch("https://repo.anaconda.com/miniconda/Miniconda3-py310_23.1.0-1-Windows-x86_64.exe")
 
         progress.update(0.6)
 
@@ -193,35 +194,6 @@ export class BackendInstaller {
 
         progress.update(1.0)
     }
-
-    async downloadXformers(progress) {
-        this.log("Checking if xFormers is installed")        
-
-        const result = spawnSync(this.pipScopedExecPath, [
-            "show", "xformers"
-        ]).output.toString()
-
-
-        if (result.includes("Location") === true) {
-            progress.update(1.0)
-            this.log("xFormers is already installed.")
-            return
-        }
-
-        progress.update(0.1)
-        
-        this.log("Downloading xFormers")
-     
-        const output = spawnSync(this.pipScopedExecPath, [
-            "install", "-v", "-U", "git+https://github.com/facebookresearch/xformers.git@main#egg=xformers"
-        ], {
-            shell: process.platform === "win32" ? "C:\\Windows\\SysWOW64\\WindowsPowerShell\\v1.0\\powershell.exe" : undefined
-        }).output.toString()
-
-        console.log(output)
-
-        progress.update(1.0)
-    }   
     
     log(message) {
         const fullMessage = `${message} (${this.progress.value})`
