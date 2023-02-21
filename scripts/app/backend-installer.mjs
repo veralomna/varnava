@@ -12,7 +12,7 @@ export class BackendInstaller {
     requiredPackages = [
         {"name": "transformers", "version": "4.25.1"},
         {"name": "accelerate", "version": "0.15.0"}, 
-        {"name": "diffusers", "version": "0.12.1"},
+        {"name": "diffusers", "version": "0.13.1"},
         {"name": "einops", "version": "0.6.0"},
         {"name": "ftfy", "version": "6.1.1"},
         {"name": "huggingface-hub", "version": "0.12.0rc0"},
@@ -77,9 +77,7 @@ export class BackendInstaller {
 
         this.progressTitle = "downloading-dependencies"
 
-        // TODO: install Xformers via 
-        // %LOCALAPPDATA%\veralomna\varnava\python-env\Scripts\pip.exe install -v -U git+https://github.com/facebookresearch/xformers.git@main#egg=xformers
-        await this.downloadPythonPackages(this.progress.child(0.49))
+        await this.downloadPythonPackages(this.progress.child(0.3))
 
         this.progressTitle = "ready-to-launch"
         
@@ -153,20 +151,37 @@ export class BackendInstaller {
         const requiredPackageNames = this.requiredPackages.map(pkg => pkg.name)
         const installedPackageNames = installedPackages.map(pkg => pkg.name)
        
-        const nonInstalledPackages = requiredPackageNames.filter(x => !installedPackageNames.includes(x));
+        // Getting list of all non installed packages and packages pending updates
+        const pendingPackages = this.requiredPackages.filter(pkg => {
+            if (!installedPackageNames.includes(pkg.name)) {
+                return true
+            }
 
-        if (nonInstalledPackages.length === 0) {
+            const installedPackage = installedPackages.filter(installedPkg => installedPkg.name === pkg.name)[0]
+
+            if (typeof pkg.version === "undefined") {
+                return false
+            }
+
+            if (installedPackage.version !== pkg.version) {
+                return true
+            }
+
+            return false
+        }).map(pkg => pkg.name)
+
+        if (pendingPackages.length === 0) {
             progress.update(1.0)
-            this.log("All Python packages are installed.")
+            this.log("All Python packages are installed and up to date.")
             return
         }
         
-        this.log("Packages to be installed: ", nonInstalledPackages.join(", "))
+        this.log("Packages to be installed or updated: ", pendingPackages.join(", "))
   
         for (const index of requiredPackageNames.keys()) {
             const pkg = this.requiredPackages[index]
-            
-            if (installedPackageNames.includes(pkg.name) === true) {
+           
+            if (pendingPackages.includes(pkg.name) === false) {
                 this.log(`Skipping installed ${pkg.name} package`)
                 progress.update(index / (requiredPackageNames.length - 1))
                 continue

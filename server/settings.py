@@ -9,7 +9,7 @@ async def list_prompts_settings(request):
     return json({
         "constants" : {
             "base_dimension" : 768,
-            "upscaled_dimension" : 2560,
+            "upscaled_dimension" : 2048,
         },
         "settings" : [
             {
