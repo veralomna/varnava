@@ -4,6 +4,7 @@ contextBridge.exposeInMainWorld("app", {
     /* Server endpoint */
     
     apiEndpoint : process.env["VITE_VARNAVA_API_URL"],
+    platform : process.platform,
 
     /* Window controls */
 

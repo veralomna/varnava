@@ -1,7 +1,7 @@
 import os
 from sanic import Blueprint
-from sanic.response import json
 from context import Context
+from ext.json import json
 
 files = Blueprint("files")
 

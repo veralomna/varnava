@@ -1,11 +1,10 @@
-from dataclasses import dataclass
 import datetime
 import os
 import json
+from dataclasses import dataclass
 from peewee import SqliteDatabase, Model, CharField, BooleanField, UUIDField, DateTimeField, ForeignKeyField, TextField, BigIntegerField, FloatField
-from lib.generator import ImageGenerator, ImageGeneratorTaskType
-from lib.resource_manager import RemoteResourceManager
-from ext.json_encoder import replace_json_encoder
+from rendering.generator import ImageGenerator, ImageGeneratorTaskType
+from rendering.resource_manager import RemoteResourceManager
 from ext.database import EnumField, JSONField, generate_uuid
 from ext.singleton import Singleton
 from mashumaro import DataClassDictMixin
@@ -61,9 +60,7 @@ class Context(object):
     
     @url_for_data_dir.setter
     def url_for_data_dir(self, url):
-        print("hi", url)
         self.config.url_for_data = url
-        print("ho")
         self.write_config()
 
     # Path inside local application data directory for storing configuration and database
@@ -101,7 +98,7 @@ class Context(object):
     def __init__(self):
         print("[SRV] Loading configuration data")
 
-        self.url_for_root_dir = os.path.join(os.getenv("LOCALAPPDATA"), "veralomna", "varnava") 
+        self.url_for_root_dir = os.path.join(os.getenv("VARNAVA_DATA_PATH"), "veralomna", "varnava") 
         self.config = self.read_config()
 
         os.makedirs(self.url_for_models_dir, exist_ok=True)

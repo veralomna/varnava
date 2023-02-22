@@ -1,8 +1,9 @@
-import { spawn } from "child_process"
 import path from "path"
+import getPort from "get-port"
+import { spawn } from "child_process"
 import { fileURLToPath } from "url"
 import { startFrontendServer } from "./app/frontend.mjs"
-import getPort from "get-port"
+import { getDataPath } from "./app/utils/paths.mjs"
 
 const rootPath = path.join(fileURLToPath(new URL(".", import.meta.url)), "..")
 
@@ -15,7 +16,7 @@ spawn("python", [
 ], {
     env: {
         VARNAVA_SERVER_PORT : port,
-        LOCALAPPDATA : process.env["LOCALAPPDATA"]
+        VARNAVA_DATA_PATH : getDataPath()
     }
 })
 

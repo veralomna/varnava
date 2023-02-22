@@ -78,7 +78,14 @@ class ImageGenerator:
         self.pipe : StableDiffusionPipeline | StableDiffusionUpscalePipeline | StableDiffusionImageVariationPipeline | None = None
 
         # Max memory available (in GB)
-        self.total_vram_amount = torch.cuda.get_device_properties(0).total_memory / 1024 / 1024 / 1024
+        if torch.cuda.is_available():
+            self.device_name = "cuda"
+            self.total_vram_amount = torch.cuda.get_device_properties(0).total_memory / 1024 / 1024 / 1024
+            self.base_dimension = 768
+        else:
+            self.device_name = "mps"
+            self.total_vram_amount = 16
+            self.base_dimension = 512
 
         # Approximate image decoder
         self.approximate_image_decoder : ApproximateDecoder | None = None
@@ -109,27 +116,34 @@ class ImageGenerator:
 
             self.prepare_model_if_needed(task.settings)
             
-            generator = torch.Generator(device="cuda")
+            if self.device_name == "cuda":
+                generator = torch.Generator(device=self.device_name)
+            else:
+                generator = None
 
             max_steps = task.settings.steps
             guidance_scale = task.settings.strength * 12.5
             aspect = task.settings.dimensions
-            seed = task.settings.seed if task.settings.seed != -1 else torch.Generator(device="cuda").seed()
+            
+            if self.device_name == "cuda":
+                seed = task.settings.seed if task.settings.seed != -1 else torch.Generator(device=self.device_name).seed()
+                generator = generator.manual_seed(seed)
+            else:
+                seed = 0
 
             if task.settings.type == ImageGeneratorTaskType.variation:
                 max_steps = 50
             elif task.settings.type == ImageGeneratorTaskType.upscale:
                 max_steps = 75
 
-            generator = generator.manual_seed(seed)
 
-            width = 768
-            height = 768
+            width = self.base_dimension
+            height = self.base_dimension
 
             if aspect < 1:
-                width = round(768 * aspect)
+                width = round(width * aspect)
             elif aspect > 1:
-                height = round(768 / aspect)
+                height = round(height / aspect)
 
             print(f"[GEN] Generating output {width}x{height}: type={task.settings.type} steps={max_steps}, scale={guidance_scale}, aspect={aspect}.")
     
@@ -197,7 +211,7 @@ class ImageGenerator:
                     ),
                 ])
 
-                source_image = tform(source_image).to("cuda").unsqueeze(0)
+                source_image = tform(source_image).to(self.device_name).unsqueeze(0)
 
                 images = self.pipe(
                     image=source_image,
@@ -209,8 +223,10 @@ class ImageGenerator:
                     callback_steps=1
                 ).images
 
-            torch.cuda.empty_cache()
-            torch.cuda.ipc_collect()
+            if torch.cuda.is_available():            
+                torch.cuda.empty_cache()
+                torch.cuda.ipc_collect()
+
             gc.collect()
 
             self.last_task = task
@@ -218,7 +234,7 @@ class ImageGenerator:
             for index, image in enumerate(images):
                 image.save(task.outputs[index].url)
 
-            task.callback(task, 1.0, generator.seed())
+            task.callback(task, 1.0, seed)
     
     def prepare_model_if_needed(self, settings : ImageGeneratorTaskSettings):
         if self.last_task is not None:
@@ -245,7 +261,7 @@ class ImageGenerator:
 
             pipe = StableDiffusionPipeline.from_pretrained(
                 "stabilityai/stable-diffusion-2-1",
-                torch_dtype=torch.float16, 
+                torch_dtype=torch.float16 if self.device_name == "cuda" else torch.float32, 
                 revision="fp16",
                 safety_checker=None,
                 cache_dir=self.models_url,
@@ -282,13 +298,7 @@ class ImageGenerator:
         elif settings.method == "deis-ms":
             pipe.scheduler = DEISMultistepScheduler.from_config(pipe.scheduler.config)
 
-        pipe = pipe.to("cuda")
-
-        if is_xformers_available():
-            print("[GEN] Xformers is enabled")
-            pipe.enable_xformers_memory_efficient_attention()
-        else:
-            print("[GEN] Xformers is NOT enabled")
+        pipe = pipe.to(self.device_name)
 
         if settings.type == ImageGeneratorTaskType.upscale:
             print("[GEN] Attention slicing is enabled")
@@ -309,16 +319,3 @@ class ImageGenerator:
         self.daemon.join()
 
 from uuid import uuid4
-
-# if __name__ == "__main__":
-#     generator = ImageGenerator(models_url="D:\\Neural\\varnava-data\\models")
-
-#     generator.add_task(ImageGeneratorTask(prompt="Planets in space photographed from the Earth. Great colors. Hyperrealistic",
-#                                           outputs=[
-#                                             ImageGeneratorOutput(id=uuid4(), url="C:\\Users\\d\\Desktop\\output.png")
-#                                           ],
-#                                           settings=ImageGeneratorTaskSettings(batch=1, type=ImageGeneratorTaskType.preview)))
-
-#     generator.start()
-
-#     generator.wait()

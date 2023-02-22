@@ -1,7 +1,7 @@
 import path from "path"
+import electron from "electron"
 import { spawn } from "child_process"
 import { fileURLToPath } from "url"
-import electron from "electron"
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url))
 
@@ -10,7 +10,7 @@ const electronServer = spawn(electron, [
 ], {
     env: {
         VARNAVA_ENV : "development",
-        LOCALAPPDATA : process.env["LOCALAPPDATA"]
+        ...process.env
     }
 })
 

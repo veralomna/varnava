@@ -5,6 +5,7 @@ import ProgressTracker from "./utils/progress.mjs"
 import { pipeline } from "node:stream"
 import { promisify } from "node:util"
 import { execSync, spawn, spawnSync } from "child_process"
+import { getDataPath } from "./utils/paths.mjs"
 
 export class BackendInstaller {
 
@@ -23,8 +24,7 @@ export class BackendInstaller {
         {"name": "sanic-ext", "version": "22.12.0"},
         {"name": "tqdm", "version": "4.64.1"}, 
         {"name": "mashumaro", "version": "3.3"},
-        {"name": "wheel", "version": "0.38.4"},
-        {"name": "torch", "command" : ["--pre", "torch", "torchaudio", "torchvision", "--index-url", "https://download.pytorch.org/whl/nightly/cu118"]},
+        {"name": "wheel", "version": "0.38.4"}
     ]
 
     progress = new ProgressTracker()
@@ -36,19 +36,50 @@ export class BackendInstaller {
     }
 
     constructor() {
-        this.dataPath = path.join(process.env["LOCALAPPDATA"], "veralomna", "varnava")
+        // All paths that we operate with 
+
+        this.dataPath = path.join(getDataPath(), "veralomna", "varnava")
         this.logPath = path.join(this.dataPath, "log")
 
         this.pythonPath = path.join(this.dataPath, "python")
-        this.pythonExecPath = path.join(this.pythonPath, "python.exe")
         this.pythonEnvPath = path.join(this.dataPath, "python-env")
+
+        if (process.platform === "win32") {
+            this.pythonExecPath = path.join(this.pythonPath, "python.exe")
+        }
+        else {
+            this.pythonExecPath = path.join(this.pythonPath, "bin", "python")
+        }
         
-        this.pythonScopedExecPath = path.join(this.pythonEnvPath, "Scripts", "python.exe")
-        this.pipScopedExecPath = path.join(this.pythonEnvPath, "Scripts", "pip.exe")
+        if (process.platform === "win32") {
+            this.pythonScopedExecPath = path.join(this.pythonEnvPath, "Scripts", "python.exe")
+            this.pipScopedExecPath = path.join(this.pythonEnvPath, "Scripts", "pip.exe")
+        }
+        else {
+            this.pythonScopedExecPath = path.join(this.pythonEnvPath, "bin", "python")
+            this.pipScopedExecPath = path.join(this.pythonEnvPath, "bin", "pip")
+        }
 
         fs.mkdirSync(this.dataPath, {
             recursive: true
         })
+
+        // Additional packages
+
+        if (process.platform === "win32") {
+            this.requiredPackages.push({
+                name: "torch",
+                command: ["--pre", "torch", "torchaudio", "torchvision", "--index-url", "https://download.pytorch.org/whl/nightly/cu118"]
+            })
+        }
+        else {
+            this.requiredPackages.push({
+                name: "torch",
+                command: ["--pre", "torch", "torchaudio", "torchvision", "--extra-index-url", "https://download.pytorch.org/whl/cpu"]
+            })
+        }
+
+        // Subscribing to progress updates
 
         this.progress.on("update", () => {
             if (typeof process.parentPort === "undefined") {
@@ -63,7 +94,7 @@ export class BackendInstaller {
             })
         })
  
-        this.log("Creating backend server")
+        this.log("Installing backend dependencies")
     }
 
     async install() {
@@ -97,22 +128,41 @@ export class BackendInstaller {
 
         this.log("Downloading Python")
 
-        const installerPath = path.join(this.dataPath, "conda-installer.exe")
-        
         progress.update(0.1)
 
-        const response = await fetch("https://repo.anaconda.com/miniconda/Miniconda3-py310_23.1.0-1-Windows-x86_64.exe")
-
-        progress.update(0.6)
-
         const streamPipeline = promisify(pipeline)
-        await streamPipeline(response.body, fs.createWriteStream(installerPath))
 
-        spawnSync(installerPath, [
-            "/RegisterPython=0",
-            "/S",
-            `/D=${this.pythonPath}`
-        ])
+        if (process.platform === "win32") {
+            const installerPath = path.join(this.dataPath, "conda-installer.exe")
+ 
+            const response = await fetch("https://repo.anaconda.com/miniconda/Miniconda3-py310_23.1.0-1-Windows-x86_64.exe")
+            await streamPipeline(response.body, fs.createWriteStream(installerPath))
+
+            progress.update(0.6)
+
+            spawnSync(installerPath, [
+                "/RegisterPython=0",
+                "/S",
+                `/D=${this.pythonPath}`
+            ])
+        }
+        else {
+            const installerPath = path.join(this.dataPath, "conda.sh")
+
+            const response = await fetch("https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-arm64.sh")
+            await streamPipeline(response.body, fs.createWriteStream(installerPath))
+          
+            progress.update(0.6)
+
+            try {
+                execSync(`zsh ${installerPath} -b -f -p ${this.pythonPath}`, {
+                    stdio: "ignore"
+                })
+            }
+            catch {
+
+            }
+        }
          
         this.log("Python is unpacked and ready.")
                  

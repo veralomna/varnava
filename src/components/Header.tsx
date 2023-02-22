@@ -53,6 +53,10 @@ export default defineComponent({
                 return null
             }
 
+            if (Store.platform !== "win32") {
+                return null
+            }
+
             return <div style="-webkit-app-region: no-drag;" class="flex gap-2 ml-6 text-2xl">
                 <button onClick={this.minimise} class="cursor-default hover:bg-gray-800 hover:text-white text-gray-500 w-7 h-7 flex items-center justify-center">
                     <span class="relative bottom-[0px]">&ndash;</span>
@@ -71,11 +75,13 @@ export default defineComponent({
                 return null
             }
 
-            return <Status style="-webkit-app-region: no-drag;" onClick={this.openStatusOverview} />
+            return <Status class="ml-auto z-10" style="-webkit-app-region: no-drag;" onClick={this.openStatusOverview} />
         }
 
         return <header style="-webkit-app-region: drag;" class={headerClassName}>
-            <h1 style="-webkit-app-region: no-drag;" class="mr-auto font-semibold text-xl uppercase font-display tracking-wide"><a onClick={this.openHome} href="#">Varnava</a></h1>
+            <h1 class={`${Store.platform === "darwin" ? "absolute h-12 top-0 left-0 right-0 flex items-center justify-center" : ""} font-semibold text-xl uppercase font-display tracking-wide`}>
+                <a style="-webkit-app-region: no-drag;" class="transition duration-500 hover:scale-105 hover:opacity-75" onClick={this.openHome} href="#">Varnava</a>
+            </h1>
             {renderStatus()}
             {renderTrafficLights()}
         </header> 

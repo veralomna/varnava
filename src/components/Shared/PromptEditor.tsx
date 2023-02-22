@@ -26,6 +26,9 @@ export default defineComponent({
             if (value.length === 0 && typeof textarea.value !== "undefined") {
                 textarea.value.value = ""
             }
+            else {
+                textarea.value.value = value
+            }
         })
 
         const change = (event : Event) => {

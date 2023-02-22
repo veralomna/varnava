@@ -15,6 +15,15 @@ export default abstract class Store<T extends Object> {
         return typeof window.app.apiEndpoint !== "undefined"
     })()
 
+    static platform = (() => {
+        if (Store.isInApp === false) {
+            return "web"
+        }
+        else {
+            return window.app.platform
+        }
+    })()
+
     protected state : T
 
     constructor() {

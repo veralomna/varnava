@@ -98,6 +98,16 @@ export default defineComponent({
             prompt.value = ""
         }
 
+        const copyPrompt = async (existingPrompt : Prompt) => {
+            prompt.value = existingPrompt.value
+
+            document.getElementById("promptsContainer")?.scrollTo({
+                top: -100,
+                left: 0,
+                behavior: "smooth"
+            })
+        }
+
         const generateOutput = (prompt : Prompt, count : number) => {
             if (resourcesStore.status.value !== RemoteResourceStatus.ready) {
                 const description = resourcesStore.status.value === RemoteResourceStatus.loading 
@@ -173,6 +183,7 @@ export default defineComponent({
             openHome,
             openProjectSettings,
             addPrompt,
+            copyPrompt,
             generateOutput,
             showOutput,
             toggleGridSize,
@@ -212,6 +223,7 @@ export default defineComponent({
                                          onToggleGridSize={this.toggleGridSize} 
                                          onToggleCollapse={this.toggleCollapse} 
                                          onShowOutput={this.showOutput} 
+                                         onCopyPrompt={this.copyPrompt}
                                          onAddMore={(count : number) => { this.generateOutput(prompt, count) }} 
                                          onMoveToOtherProject={this.updateProject}
                                          project={this.project} 
@@ -222,7 +234,7 @@ export default defineComponent({
             }
         }
 
-        return <article class="flex flex-col h-full relative" style="padding-top: 48px; overflow: overlay; margin-right: -18px; padding-right: 18px;">
+        return <article id="promptsContainer" class="flex flex-col h-full relative" style="padding-top: 48px; overflow: overlay; margin-right: -18px; padding-right: 18px;">
             {renderTitle()}
             <PromptEditor value={this.prompt} onSubmit={this.addPrompt} onChange={(value : string) => { this.prompt = value }} />
             {renderPrompts()}

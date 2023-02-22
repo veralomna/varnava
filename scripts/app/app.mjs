@@ -1,5 +1,5 @@
 import path from "path"
-import { app, BrowserWindow, ipcMain, dialog } from "electron"
+import { app, BrowserWindow, ipcMain, dialog, Menu } from "electron"
 import { fileURLToPath } from "url"
 import Store from "electron-store"
 import { BackendServer } from "./backend.mjs"
@@ -30,8 +30,9 @@ const makeMainWindow = async () => {
     minHeight: 500,
     autoHideMenuBar : true,
     title: "VARNAVA",
-    backgroundColor: "#000000",
+    backgroundColor: "#171717",
     titleBarStyle: "hidden",
+    trafficLightPosition: { x: 24, y: 15 },
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -53,6 +54,70 @@ const makeMainWindow = async () => {
   return mainWindow
 }
 
+const makeMainMenu = () => {
+  if (process.platform !== "darwin") {
+    return
+  }
+
+  const menu = Menu.buildFromTemplate([
+    {
+      label: app.name,
+      submenu: [
+        { role: 'about' },
+        { type: 'separator' },
+        { role: 'services' },
+        { type: 'separator' },
+        { role: 'hide' },
+        { role: 'hideOthers' },
+        { role: 'unhide' },
+        { type: 'separator' },
+        { role: 'quit' }
+      ]
+    },
+    {
+      label: 'Edit',
+      submenu: [
+        { role: 'undo' },
+        { role: 'redo' },
+        { type: 'separator' },
+        { role: 'cut' },
+        { role: 'copy' },
+        { role: 'paste' },
+        { role: 'pasteAndMatchStyle' },
+        { role: 'delete' },
+        { role: 'selectAll' },
+        { type: 'separator' },
+        {
+          label: 'Speech',
+          submenu: [
+            { role: 'startSpeaking' },
+            { role: 'stopSpeaking' }
+          ]
+        }
+      ]
+    },
+    {
+      label: 'View',
+      submenu: [
+        { role: 'togglefullscreen' }
+      ]
+    },
+    {
+      label: 'Window',
+      submenu: [
+        { role: 'minimize' },
+        { role: 'zoom' },
+        { type: 'separator' },
+        { role: 'front' },
+        { type: 'separator' },
+        { role: 'window' }
+      ]
+    },
+  ])
+
+  Menu.setApplicationMenu(menu)
+}
+
 const runApp = async () => {
   // Starting server
   const server = new BackendServer(rootPath)
@@ -64,6 +129,9 @@ const runApp = async () => {
 
   // Creating window
   const mainWindow = await makeMainWindow()
+
+  // Making main menu on macOS
+  makeMainMenu()
 
   if (process.env.VARNAVA_ENV === "development") {
     // Launching front end server to allow quick debugging
@@ -111,10 +179,16 @@ const runApp = async () => {
 
   /* Global app messages */
 
+  app.on("activate", () => {
+    mainWindow.show()
+  })
+
+  app.on("quit", () => {
+    server.shutdownSync()
+  })
+
   app.on("window-all-closed", () => {
-    if (process.platform !== "darwin") {
-      app.quit()
-    }
+    app.quit()
   })
 
 }

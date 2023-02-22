@@ -1,7 +1,6 @@
 import { Prompt } from "@/stores/PromptStore"
 import { Output } from "@/stores/OutputStore"
-import { PlusCircleIcon, MinusCircleIcon, SquaresPlusIcon, Squares2X2Icon, Square2StackIcon, StarIcon, EllipsisVerticalIcon } from '@heroicons/vue/24/solid'
-import { StarIcon as OutlineStartIcon } from "@heroicons/vue/24/outline"
+import { PlusCircleIcon, MinusCircleIcon, SquaresPlusIcon, DocumentDuplicateIcon, StarIcon, EllipsisVerticalIcon } from '@heroicons/vue/24/solid'
 import SettingsEditor from "@/components/Shared/SettingsEditor"
 import { PromptGridSize } from "@/stores/PromptStore"
 import { Project } from "@/stores/ProjectStore"
@@ -21,28 +20,27 @@ interface Props {
     onMoveToOtherProject : Function
     onToggleCollapse : Function
     onToggleGridSize : Function
+    onCopyPrompt : Function
 }
 
 export const PromptEntry = (props : Props) => {
     const modal = useModal()
 
     const renderGridSizeToggle = () => {
-        if (props.gridSize === "small") {
-            return <Squares2X2Icon class="w-6 h-6 hover:opacity-75" />
+        const renderLabel = () => {
+            if (props.gridSize === "small") {
+                return "4"
+            }
+            else {
+                return "2"
+            }
         }
-        else {
-            return <Square2StackIcon class="w-6 h-6 hover:opacity-75" />
-        }
+    
+        return <span class="hover:opacity-75 mt-0.5 border-[1.5px] border-white w-5 h-5 text-xs rounded-md text-white font-bold flex items-center justify-center">{renderLabel()}</span>
     }
 
-    const renderFavoriteToggle = () => {
-        return null
-        //if (props.gridSize === "small") {
-         //   return <OutlineStartIcon class="w-6 h-6 hover:opacity-75" />
-        //}
-        //else {
-        //    return <Square2StackIcon class="w-6 h-6" />
-        //}
+    const renderCopyPrompt = () => {
+        return <DocumentDuplicateIcon class="hover:opacity-75 mt-0.5 w-5 h-5" />
     }
 
     const renderOptions = () => {
@@ -50,10 +48,10 @@ export const PromptEntry = (props : Props) => {
     }
 
     const renderActions = () => {
-        return <div class="ml-auto grow-0 shrink-0 flex flex-col items-end">
+        return <div class="select-none ml-auto pl-2 grow-0 shrink-0 flex flex-col items-end">
             <div class="flex gap-2">
-                <a onClick={() => { }} href="#">
-                    {renderFavoriteToggle()}
+                <a class="mr-1.5" onClick={() => { props.onCopyPrompt(props.prompt) }} href="#">
+                    {renderCopyPrompt()}
                 </a>
                 <a onClick={() => { props.onToggleGridSize(props.prompt) }} href="#">
                     {renderGridSizeToggle()}
@@ -62,12 +60,9 @@ export const PromptEntry = (props : Props) => {
                     {renderOptions()}
                 </a>
             </div>
-            <div class="mt-auto grid grid-cols-2 font-regular gap-3 leading-5 text-lg font-medium font-mono">
+            <div class="mt-auto font-regular gap-3 leading-5 text-lg font-medium font-mono">
                 <button class="block px-4 py-1.5 bg-blue-700 hover:bg-blue-600 text-center rounded flex justify-center items-center" onClick={event => { event.preventDefault(); props.onAddMore(1) }}>
-                    <SquaresPlusIcon class="rotate-180 w-5 h-5 mr-2" /> 1
-                </button>
-                <button class="block px-4 py-1.5 bg-blue-700 hover:bg-blue-600 text-center rounded flex justify-center items-center" onClick={event => { event.preventDefault(); props.onAddMore(2) }}>
-                    <SquaresPlusIcon class="rotate-180 w-5 h-5 mr-2" /> 2
+                    <SquaresPlusIcon class="rotate-180 w-5 h-5" />
                 </button>
             </div>
         </div>
@@ -75,8 +70,8 @@ export const PromptEntry = (props : Props) => {
 
     const renderStats = () => {
         return <div class="ml-auto pl-4 grow-0 shrink-0 flex items-end">
-            <div class="text-neutral-400 text-lg font-medium font-mono px-4 py-2 bg-neutral-800 text-center rounded flex justify-center items-center leading-5">
-                <Squares2X2Icon class="w-5 h-5 mr-2" /> {props.prompt.outputs.length}
+            <div class="text-neutral-400 font-medium px-3 py-1 bg-neutral-800 rounded">
+                {props.prompt.outputs.length} {props.prompt.outputs.length > 1 ? "images" : "image"}
             </div>
         </div>
     }

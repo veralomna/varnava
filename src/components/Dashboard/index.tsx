@@ -46,7 +46,7 @@ export default defineComponent({
     render() {
         const renderAddProjectEntry = () => {
             return <li onClick={() => this.addProject()} key="add-project" class="cursor-pointer bg-blue-800 hover:bg-blue-700 rounded-lg border-neutral-700 border border-dashed hover:border-solid">
-                <ProjectEntry title="Create Project" subtitle="And Start Creating" />
+                <ProjectEntry title="Create Project" subtitle="And Start Imagining" />
             </li>
         }
 

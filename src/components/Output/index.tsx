@@ -165,7 +165,7 @@ export default defineComponent({
                 </div>
             }
 
-            return <div class="w-full min-w-[76%] max-w-[76%] bg-gray-700/50 aspect-square drop-shadow-lg relative"> 
+            return <div class="w-full min-w-[72%] max-w-[72%] bg-gray-700/50 aspect-square drop-shadow-lg relative"> 
                 {renderImageContents()}
                 {renderLoadingProgress()}
             </div>

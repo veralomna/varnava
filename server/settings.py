@@ -1,5 +1,6 @@
 from sanic import Blueprint
-from sanic.response import json
+from ext.json import json
+from context import Context
 
 settings = Blueprint("settings")
 
@@ -8,7 +9,7 @@ settings = Blueprint("settings")
 async def list_prompts_settings(request):
     return json({
         "constants" : {
-            "base_dimension" : 768,
+            "base_dimension" : Context.instance().generator.base_dimension,
             "upscaled_dimension" : 2048,
         },
         "settings" : [
@@ -58,7 +59,7 @@ async def list_prompts_settings(request):
                 ],
                 "default" : -1,
                 "displayNames" : {
-                    -1 : "Random"
+                    -1 : "Auto"
                 },
                 "custom" : "number"
             },

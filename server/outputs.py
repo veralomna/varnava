@@ -1,10 +1,10 @@
 import os
 from sanic import Blueprint
-from sanic.response import json
 from uuid import uuid4, UUID
 from playhouse.shortcuts import model_to_dict
 from context import Project, Prompt, Output, Context
-from lib.generator import ImageGeneratorTask, ImageGeneratorOutput, ImageGeneratorTaskSettings, ImageGeneratorTaskType
+from rendering.generator import ImageGeneratorTask, ImageGeneratorOutput, ImageGeneratorTaskSettings, ImageGeneratorTaskType
+from ext.json import json
 
 outputs = Blueprint("outputs")
 

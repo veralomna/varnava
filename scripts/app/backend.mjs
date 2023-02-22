@@ -2,6 +2,7 @@ import { spawn } from "child_process"
 import getPort from "get-port"
 import path from "path"
 import { app, utilityProcess } from "electron"
+import { getDataPath } from "./utils/paths.mjs"
 
 export class BackendServer {
 
@@ -13,10 +14,17 @@ export class BackendServer {
 
     constructor(rootPath) {
         this.rootPath = rootPath
-        this.dataPath = path.join(process.env["LOCALAPPDATA"], "veralomna", "varnava")
+        this.dataPath = path.join(getDataPath(), "veralomna", "varnava")
+        
         this.pythonEnvPath = path.join(this.dataPath, "python-env")
-        this.pythonScopedExecPath = path.join(this.pythonEnvPath, "Scripts", "python.exe")
-
+        
+        if (process.platform === "win32") {
+            this.pythonScopedExecPath = path.join(this.pythonEnvPath, "Scripts", "python.exe")
+        }
+        else {
+            this.pythonScopedExecPath = path.join(this.pythonEnvPath, "bin", "python")
+        }
+        
         if (process.env.VARNAVA_ENV === "development") {
             this.installerScriptPath = path.join(this.rootPath, "scripts", "app", "backend-installer.cjs")
             this.serverScriptPath = path.join(this.rootPath, "server", "server.py")
@@ -69,7 +77,7 @@ export class BackendServer {
         ], {
             env: {
                 VARNAVA_SERVER_PORT : this.port,
-                LOCALAPPDATA : process.env["LOCALAPPDATA"]
+                VARNAVA_DATA_PATH : getDataPath()
             }
         })
 
@@ -86,6 +94,16 @@ export class BackendServer {
         server.stderr.on("data", data => {
             process.stderr.write(data.toString())
         })
+
+        this.server = server
+    }
+
+    shutdownSync() {
+        if (typeof this.server === "undefined") {
+            return
+        }
+
+        this.server.kill()
     }
 
 }
