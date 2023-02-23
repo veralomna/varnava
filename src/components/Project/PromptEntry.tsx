@@ -4,11 +4,11 @@ import { PlusCircleIcon, MinusCircleIcon, SquaresPlusIcon, DocumentDuplicateIcon
 import SettingsEditor from "@/components/Shared/SettingsEditor"
 import { PromptGridSize } from "@/stores/PromptStore"
 import { Project } from "@/stores/ProjectStore"
-import { useModal } from "@/stores/vue-modal"
+import { useModal } from "@/utils/vue-modal"
 import EditPromptModal from "./EditPromptModal"
 import { Transition } from "vue"
-import LinearProgress from "../Shared/LinearProgress"
 import Store from "@/stores/Store"
+import { OutputStatusIndicator } from "@/components/Output/OutputStatusIndicator"
 
 interface Props {
     prompt : Prompt
@@ -136,14 +136,14 @@ export const PromptEntry = (props : Props) => {
                 return null
             }
 
-            return <div class="absolute bottom-4 left-4 right-4">
-                <LinearProgress value={output.progress} />
+            return <div class="absolute left-2 top-2">
+                <OutputStatusIndicator output={output} />
             </div>
         }
         
-        return <div onClick={() => { props.onShowOutput(output) }} class="relative cursor-pointer bg-neutral-800 aspect-square flex justify-center items-center rounded">
+        return <div data-output-id={output.id} onClick={() => { props.onShowOutput(output) }} class="relative cursor-pointer bg-neutral-800 aspect-square flex justify-center items-center rounded">
             {output.progress > 0 &&
-                <img class="rounded object-contain w-full h-full" alt="" src={`${Store.apiEndpoint}/outputs/${output.url}?date=${output.progress}`} />
+                <img class="rounded object-contain w-full h-full" alt="" src={`${Store.apiEndpoint}/outputs/${output.url}?progress=${output.progress}`} />
             }
             {renderFavoriteIndicator()}
             {renderLoadingProgress()}

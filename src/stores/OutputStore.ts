@@ -2,6 +2,7 @@ import { computed } from "vue"
 import Store from "./Store"
 import { Prompt } from "./PromptStore"
 import { settingsStore } from "./SettingsStore"
+import { MessagingClientEvent, messagingClient } from "@/utils/MessagingClient"
 
 export enum OutputType {
     preview = "preview",
@@ -101,6 +102,14 @@ export class OutputStore extends Store<OutputState> {
             await this.fetch()
             this.updateWithBestAvailableScale()
             this.state.isInitialLoading = false
+
+            messagingClient.addListener(MessagingClientEvent.outputUpdated, (output : Output) => {
+                if (output.id !== output.id && output.id !== this.currentOutput.value?.id) {
+                    return
+                }
+
+                this.fetch()
+            })
         }
 
         fetchInitialData()
@@ -184,8 +193,6 @@ export class OutputStore extends Store<OutputState> {
                     settings: settings
                 })
             })
-            
-            this.checkProgress()
         }
         catch (error) {
 
@@ -213,8 +220,6 @@ export class OutputStore extends Store<OutputState> {
                     settings: settings
                 })
             })
-            
-            this.checkProgress()
         }
         catch (error) {
 
@@ -250,30 +255,5 @@ export class OutputStore extends Store<OutputState> {
 
         }
     }
-
-    protected async checkProgress() {
-        await this.fetch()
-
-        function flattenChildren(outputs : Output[]) {
-            return outputs.reduce((result, next) => {
-                result.push(next)
-
-                if (next.children && next.children.length > 0) {
-                    result = result.concat(flattenChildren(next.children))
-                }
-
-                return result
-            }, [])
-        }
-        
-        const allOutputs = flattenChildren(this.state.variations)
-
-        if (allOutputs.filter(output => { return output.progress < 1 }).length > 0) {       
-            setTimeout(() => {
-                this.checkProgress()
-            }, 500)
-        }
-    }
-
   
 }

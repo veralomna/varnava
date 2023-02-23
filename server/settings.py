@@ -1,5 +1,5 @@
 from sanic import Blueprint
-from ext.json import json
+from lib.json import json
 from context import Context
 
 settings = Blueprint("settings")

@@ -1,4 +1,4 @@
-import { AlertActionOkay, useModal } from "@/stores/vue-modal"
+import { AlertActionOkay, useModal } from "@/utils/vue-modal"
 import { defineComponent, ref, watch } from "vue"
 import SettingsEditor from "./SettingsEditor"
 

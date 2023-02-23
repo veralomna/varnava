@@ -10,6 +10,7 @@ from prompts import prompts
 from outputs import outputs
 from files import files
 from settings import settings
+from updates import updates
 
 app = Sanic("varnava-server")
 app.config.CORS_ORIGINS = "*"
@@ -21,6 +22,7 @@ app.blueprint(prompts)
 app.blueprint(outputs)
 app.blueprint(files)
 app.blueprint(settings)
+app.blueprint(updates)
 
 Extend(app)
 

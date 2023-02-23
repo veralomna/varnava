@@ -1,6 +1,6 @@
-import { computed, defineComponent, ref, Transition } from "vue"
+import { computed, defineComponent, ref, Transition, watch } from "vue"
 import { RouterView, useRoute, useRouter } from "vue-router"
-import { AlertActionOkay, useModal } from "@/stores/vue-modal"
+import { AlertActionOkay, useModal } from "@/utils/vue-modal"
 import { projectStore } from "@/stores/ProjectStore"
 import { PromptStore, Prompt, PromptGridSize } from "@/stores/PromptStore"
 import { Output } from "@/stores/OutputStore"
@@ -10,7 +10,7 @@ import EditProjectModal from "./EditProjectModal"
 import PromptEditor from "@/components/Shared/PromptEditor"
 import { settingsStore } from "@/stores/SettingsStore"
 import { RemoteResourceStatus, resourcesStore } from "@/stores/ResourcesStore"
-import useKeyDown from "@/stores/utils/useKeydown"
+import useKeyDown from "@/utils/useKeydown"
 
 export default defineComponent({
 
@@ -19,8 +19,8 @@ export default defineComponent({
         const route = useRoute()
         const modal = useModal()
 
-        const projectId = ref<string>(route.params.id as string || "")
-        const promptStore = new PromptStore(projectId.value)
+        let projectId = ref<string>(route.params.id as string || "")
+        let promptStore = new PromptStore(projectId.value)
 
         const prompt = ref("")
 
@@ -39,7 +39,7 @@ export default defineComponent({
                     if (route.name !== "output-details") {
                         return
                     }
-                    console.log("WHY")
+                    
                     router.replace({
                         name: "project-details",
                         params: {
@@ -172,6 +172,39 @@ export default defineComponent({
             projectStore.fetch()
         }
 
+        const highlightFocusedOutput = (newValue : string) => {
+            const value = newValue.split(":")[0]
+
+            const element = document.querySelector(`[data-output-id="${value}"]`)
+
+            if (element === null) {
+                return
+            }
+
+            const intersectionObserver = new IntersectionObserver(entries => {
+                let [entry] = entries
+
+                if (entry.isIntersecting === false) {
+                    return
+                }
+
+                element.style = "filter: brightness(1.7); animation: smallwiggle 0.1s infinite; transition: all 0.3s ease-out;"
+
+                setTimeout(() => {
+                    element.style = "transition: all 0.3s ease-out;"
+                }, 500)
+        
+                intersectionObserver.disconnect()
+            })
+     
+            intersectionObserver.observe(element)
+              
+            element?.scrollIntoView({
+                behavior: "auto",
+                block: "center"
+            })
+        }
+
         return {
             prompt,
             promptStore,
@@ -188,12 +221,30 @@ export default defineComponent({
             showOutput,
             toggleGridSize,
             toggleCollapse,
-            updateProject
+            updateProject,
+            highlightFocusedOutput
         }
     },
 
     beforeRouteUpdate(to, from, next) {
+        const projectId = to.params.id
+        const focusedOutputId = to.params.focusedOutputId
+
+        if (projectId != this.projectId) {
+            this.promptStore.updateProjectId(projectId)
+            this.projectId = projectId
+        }
+
         this.promptStore.fetch()
+
+        setTimeout(() => {
+            if (typeof focusedOutputId === "undefined") {
+                return
+            }
+
+            this.highlightFocusedOutput(focusedOutputId)
+        }, 100)
+        
         next()
     },
 
@@ -203,7 +254,7 @@ export default defineComponent({
                 <h2 class="text-4xl font-semibold mr-4">{this.project.title}</h2>   
                 <a class="pt-2 text-blue-500 hover:text-blue-400" href="#" onClick={this.openHome}>⤶ All Projects</a>
                 <a class="ml-auto pt-2" href="#" onClick={this.openProjectSettings}>
-                    <AdjustmentsHorizontalIcon class=" w-6 h-6" />
+                    <AdjustmentsHorizontalIcon class="hover:opacity-75 w-6 h-6" />
                 </a>
             </div>
         }

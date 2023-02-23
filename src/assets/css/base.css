@@ -68,3 +68,8 @@ input[type=number] {
 ::-webkit-scrollbar-thumb:hover {
   background: #555;
 }
+
+@keyframes smallwiggle {
+  0%, 100% { transform: translateX(1px) translateY(1px) scale(1.05); }
+  50% { transform: translateX(-1px) translateY(-1px); }
+}

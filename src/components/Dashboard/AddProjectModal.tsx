@@ -1,5 +1,5 @@
 import { defineComponent, ref, computed, PropType } from "vue"
-import { Modal } from "@/stores/vue-modal"
+import { Modal } from "@/utils/vue-modal"
 import { Input, Button, Label } from "@/components/Shared"
 import { projectStore } from "@/stores/ProjectStore"
 

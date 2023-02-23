@@ -11,13 +11,27 @@ const rootPath = path.join(fileURLToPath(new URL(".", import.meta.url)), "..")
 const port = await getPort() 
 
 // Getting server port to run it on.
-spawn("python", [
+const server = spawn("python", [
     path.join(rootPath, "server", "server.py"),
 ], {
     env: {
         VARNAVA_SERVER_PORT : port,
         VARNAVA_DATA_PATH : getDataPath()
     }
+})
+
+server.stdout.on("data", data => {
+    const value = data.toString()
+    process.stdout.write(value)
+
+    if (value.includes("Ready") === true) {
+        this.state.progress = 1.0
+        this.state.status = "running-server"
+    }
+})
+
+server.stderr.on("data", data => {
+    process.stderr.write(data.toString())
 })
 
 // Setting environment variables about the context of our run.

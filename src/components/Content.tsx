@@ -9,19 +9,10 @@ export default defineComponent({
     setup(props, ctx) {
         prerequisitesStore.fetch()
 
-        const timer = setInterval(() => {
-            prerequisitesStore.fetch()
-        }, 1000)
-
         return {
             prerequisitesState : prerequisitesStore.getState(),
-            timer
         }
-    },
-
-    beforeUnmount() {
-        clearInterval(this.timer)
-    },    
+    },   
 
     render() {
         const renderLoadingLabel = () => {

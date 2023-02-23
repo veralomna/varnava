@@ -1,8 +1,8 @@
 from sanic import Blueprint
 from uuid import UUID
 from playhouse.shortcuts import model_to_dict
-from context import Project, Prompt, Output
-from ext.json import json
+from db.models import Project, Prompt, Output
+from lib.json import json
 
 prompts = Blueprint("prompts")
 

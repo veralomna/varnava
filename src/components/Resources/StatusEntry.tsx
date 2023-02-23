@@ -50,7 +50,7 @@ export default defineComponent({
             }
 
             if (this.status === RemoteResourceStatus.loading) {
-                return <Spinner class="w-4 h-4 inline fill-yellow-500" />
+                return <Spinner class="w-4 h-4 mr-2 inline fill-yellow-500" />
             }
             else {
                 return <span class={`inline-block w-3 h-3 rounded-full mr-2 ${color}`}></span>

@@ -2,11 +2,33 @@ import os
 from sanic import Blueprint
 from uuid import uuid4, UUID
 from playhouse.shortcuts import model_to_dict
-from context import Project, Prompt, Output, Context
+from db.models import Project, Prompt, Output
+from context import Context
 from rendering.generator import ImageGeneratorTask, ImageGeneratorOutput, ImageGeneratorTaskSettings, ImageGeneratorTaskType
-from ext.json import json
+from lib.json import json
 
 outputs = Blueprint("outputs")
+
+# Getting all outputs as a log with all necessary output data.
+@outputs.get("/outputs/<page:int>")
+async def get_all_outputs(request, page: int):
+    outputs = list(
+        Output
+            .select(
+                Output,
+            )
+            .order_by(Output.createdAt.desc())
+            .paginate(page, 100)
+    )
+
+    processed_outputs = []
+
+    for output in outputs:
+        processed_outputs.append(model_to_dict(output))
+    
+    return json({
+        "outputs": processed_outputs
+    })
 
 # Getting output with its children by their respective identifiers
 @outputs.get("/projects/<project_id:uuid>/output/<output_id:uuid>")
@@ -112,6 +134,10 @@ async def add_output(request, project_id: UUID, prompt_id: UUID):
             output.progress = progress
             output.save()
 
+            Context.instance().channel.send("output.updated", {
+                "output" : model_to_dict(output)
+            })
+
     # Scheduling generator task to the backend generator
     task = ImageGeneratorTask(
         prompt=prompt.value,
@@ -148,6 +174,10 @@ async def add_output(request, project_id: UUID, prompt_id: UUID):
         )
 
         output.save(force_insert=True)
+
+        Context.instance().channel.send("output.created", {
+            "output" : model_to_dict(output)
+        })
 
         task.outputs.append(ImageGeneratorOutput(
             id=id,

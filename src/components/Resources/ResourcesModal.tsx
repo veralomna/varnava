@@ -1,5 +1,5 @@
 import { defineComponent, ref, computed, PropType } from "vue"
-import { AlertActionCancel, AlertActionOkay, Modal, useModal } from "@/stores/vue-modal"
+import { AlertActionCancel, AlertActionOkay, Modal, useModal } from "@/utils/vue-modal"
 import { Button } from "@/components/Shared"
 import { RemoteResourceStatus, RemoteResource, resourcesStore, DataPathUpdateStatus } from "@/stores/ResourcesStore"
 import StatusEntry from "./StatusEntry"

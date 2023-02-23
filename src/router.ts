@@ -19,7 +19,7 @@ export const router = createRouter({
         },
 
         {
-            path: "/projects/:id",
+            path: "/projects/:id/:focusedOutputId?",
             name: "project-details",
             meta: { title: "Project" },
             component: () => import("@/components/Project"),

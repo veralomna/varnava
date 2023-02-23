@@ -49,7 +49,8 @@ module.exports = {
             "page": "940px"
         },
         fontSize: {
-            "xxs" : ".7rem"
+            "2xs" : ".7rem",
+            "3xs" : ".6rem"
         },
         minWidth: {
             "1/4": "25%",
@@ -61,6 +62,16 @@ module.exports = {
             "1/4": "25%",
             "1/2": "50%",
             "3/4": "75%"
+        },
+        animation: {
+          "spin-slow": "spin 3s linear infinite",
+          "wiggle": "wiggle 1s ease-in-out infinite",
+        },
+        keyframes: {
+          wiggle: {
+            "0%, 100%": { transform: "rotate(-4deg) scale(1.1)" },
+            "50%": { transform: "rotate(4deg)" },
+          }
         }
     }
   },

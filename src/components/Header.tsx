@@ -1,7 +1,8 @@
 import { defineComponent } from "vue"
 import { useRouter } from "vue-router"
-import { useModal } from "@/stores/vue-modal"
+import { useModal } from "@/utils/vue-modal"
 import Status from "@/components/Resources/StatusEntryButton"
+import Activity from "@/components/Resources/Activity"
 import ResourcesModal from "@/components/Resources/ResourcesModal"
 import Store from "@/stores/Store"
 import { PrerequisitesStatus, prerequisitesStore } from "@/stores/PrerequisitesStore"
@@ -75,13 +76,22 @@ export default defineComponent({
                 return null
             }
 
-            return <Status class="ml-auto z-10" style="-webkit-app-region: no-drag;" onClick={this.openStatusOverview} />
+            return <Status class="z-10" style="-webkit-app-region: no-drag;" onClick={this.openStatusOverview} />
+        }
+
+        const renderQueueStatus = () => {
+            if (Store.isInApp === true && this.prerequisitesState.status !== PrerequisitesStatus.running) {
+                return null
+            }
+
+            return <Activity class="ml-auto mr-3 z-10" style="-webkit-app-region: no-drag;" />
         }
 
         return <header style="-webkit-app-region: drag;" class={headerClassName}>
             <h1 class={`${Store.platform === "darwin" ? "absolute h-12 top-0 left-0 right-0 flex items-center justify-center" : ""} font-semibold text-xl uppercase font-display tracking-wide`}>
                 <a style="-webkit-app-region: no-drag;" class="transition duration-500 hover:scale-105 hover:opacity-75" onClick={this.openHome} href="#">Varnava</a>
             </h1>
+            {renderQueueStatus()}
             {renderStatus()}
             {renderTrafficLights()}
         </header> 

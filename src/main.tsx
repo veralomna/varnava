@@ -1,7 +1,8 @@
 import { createApp, defineComponent } from "vue"
-import { provideModal } from "@/stores/vue-modal"
+import { provideModal } from "@/utils/vue-modal"
 import { router } from "@/router"
 
+import "@/utils/MessagingClient"
 import "@/assets/css/base.css"
 
 import App from "@/components/App"

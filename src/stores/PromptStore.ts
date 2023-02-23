@@ -1,5 +1,6 @@
 import Store from "./Store"
 import { Output } from "./OutputStore"
+import { MessagingClientEvent, messagingClient } from "@/utils/MessagingClient"
 
 export enum PromptGridSize {
     small = "small",
@@ -45,6 +46,15 @@ export class PromptStore extends Store<PromptState> {
         super()
         this.projectId = projectId
         this.fetch()
+
+        messagingClient.addListener(MessagingClientEvent.outputUpdated, () => {
+            this.fetch()
+        })
+    }
+
+    public async updateProjectId(projectId : string) {
+        this.projectId = projectId
+        await this.fetch()
     }
 
     public async fetch() {
@@ -114,27 +124,14 @@ export class PromptStore extends Store<PromptState> {
                     "settings" : settings
                 })
             })
-            
-            await this.checkGenerationProgress(prompt)
+
+            await this.fetch()
         }
         catch (error) {
 
         }
 
         this.state.isLoading = false
-    }
-
-    protected async checkGenerationProgress(prompt : Prompt) {
-        await this.fetch()
-
-        // Checking if we still need to refresh
-        const outputs = this.state.promptsById[prompt.id].outputs
-
-        if (outputs.filter(output => { return output.progress < 1 }).length > 0) {       
-            setTimeout(() => {
-                this.checkGenerationProgress(prompt)
-            }, 500)
-        }
     }
 
     public getOutputById(id : string): Output {

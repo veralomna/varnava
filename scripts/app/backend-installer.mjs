@@ -100,15 +100,15 @@ export class BackendInstaller {
     async install() {
         this.progressTitle = "downloading-executables"
 
-        await this.downloadPython(this.progress.child(0.4))
+        await this.downloadPython(this.progress.child(0.45))
 
         this.progressTitle = "preparing-environment"
 
-        await this.createPythonEnvironment(this.progress.child(0.1))
+        await this.createPythonEnvironment(this.progress.child(0.05))
 
         this.progressTitle = "downloading-dependencies"
 
-        await this.downloadPythonPackages(this.progress.child(0.3))
+        await this.downloadPythonPackages(this.progress.child(0.49))
 
         this.progressTitle = "ready-to-launch"
         

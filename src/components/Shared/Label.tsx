@@ -7,7 +7,7 @@ export interface Props extends LabelHTMLAttributes {
 export default (props : Props, context: { slots: { default: any } }) => {
 
   const noOp = () => {}
-  const className = "block text-gray-400 text-xxs font-semibold mb-1"
+  const className = "block text-gray-400 text-2xs font-semibold mb-1"
 
   return <label class={className}>
         {props.title ? (

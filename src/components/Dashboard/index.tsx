@@ -1,7 +1,7 @@
 import { computed, defineComponent, ref, watch } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import { Project, projectStore } from "@/stores/ProjectStore"
-import { useModal } from "@/stores/vue-modal"
+import { useModal } from "@/utils/vue-modal"
 import ProjectEntry from "./ProjectEntry"
 import AddProjectModal from "./AddProjectModal"
 import { RemoteResourceStatus, resourcesStore } from "@/stores/ResourcesStore"
@@ -45,7 +45,7 @@ export default defineComponent({
 
     render() {
         const renderAddProjectEntry = () => {
-            return <li onClick={() => this.addProject()} key="add-project" class="cursor-pointer bg-blue-800 hover:bg-blue-700 rounded-lg border-neutral-700 border border-dashed hover:border-solid">
+            return <li onClick={() => this.addProject()} key="add-project" class="cursor-pointer hover:bg-blue-700 rounded-lg border-neutral-700 border border-dashed hover:border-solid">
                 <ProjectEntry title="Create Project" subtitle="And Start Imagining" />
             </li>
         }

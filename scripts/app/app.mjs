@@ -63,54 +63,47 @@ const makeMainMenu = () => {
     {
       label: app.name,
       submenu: [
-        { role: 'about' },
-        { type: 'separator' },
-        { role: 'services' },
-        { type: 'separator' },
-        { role: 'hide' },
-        { role: 'hideOthers' },
-        { role: 'unhide' },
-        { type: 'separator' },
-        { role: 'quit' }
+        { role: "about" },
+        { type: "separator" },
+        { role: "services" },
+        { type: "separator" },
+        { role: "hide" },
+        { role: "hideOthers" },
+        { role: "unhide" },
+        { type: "separator" },
+        { role: "quit" }
       ]
     },
     {
       label: 'Edit',
       submenu: [
-        { role: 'undo' },
-        { role: 'redo' },
-        { type: 'separator' },
-        { role: 'cut' },
-        { role: 'copy' },
-        { role: 'paste' },
-        { role: 'pasteAndMatchStyle' },
-        { role: 'delete' },
-        { role: 'selectAll' },
-        { type: 'separator' },
-        {
-          label: 'Speech',
-          submenu: [
-            { role: 'startSpeaking' },
-            { role: 'stopSpeaking' }
-          ]
-        }
+        { role: "undo" },
+        { role: "redo" },
+        { type: "separator" },
+        { role: "cut" },
+        { role: "copy" },
+        { role: "paste" },
+        { role: "pasteAndMatchStyle" },
+        { role: "delete" },
+        { role: "selectAll" },
       ]
     },
     {
       label: 'View',
       submenu: [
-        { role: 'togglefullscreen' }
+        { role: "toggleDevTools" },
+        { role: "togglefullscreen" }
       ]
     },
     {
       label: 'Window',
       submenu: [
-        { role: 'minimize' },
-        { role: 'zoom' },
-        { type: 'separator' },
-        { role: 'front' },
-        { type: 'separator' },
-        { role: 'window' }
+        { role: "minimize" },
+        { role: "zoom" },
+        { type: "separator" },
+        { role: "front" },
+        { type: "separator" },
+        { role: "window" }
       ]
     },
   ])

@@ -1,4 +1,3 @@
-import { computed } from "vue"
 import Store from "./Store"
 
 export enum PrerequisitesStatus {
@@ -33,6 +32,12 @@ export class PrerequisitesStore extends Store<PrerequisitesState> {
         const result = await window.app.fetchPrerequisitesStatus()
         this.state.status = result["status"]
         this.state.progress = result["progress"]
+
+        if (this.state.status !== PrerequisitesStatus.running) {
+            setTimeout(() => {
+                prerequisitesStore.fetch()
+            }, 500)
+        }
     }
 
 }

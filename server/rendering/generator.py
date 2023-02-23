@@ -9,7 +9,6 @@ from typing import Callable, Any
 from uuid import UUID
 from enum import Enum, unique
 from diffusers import StableDiffusionUpscalePipeline, StableDiffusionImageVariationPipeline, StableDiffusionPipeline, DPMSolverMultistepScheduler, DDIMScheduler, LMSDiscreteScheduler, DEISMultistepScheduler, HeunDiscreteScheduler, DPMSolverSinglestepScheduler
-from diffusers.utils import is_xformers_available
 from mashumaro import DataClassDictMixin
 from .approximation import ApproximateDecoder
 from PIL import Image

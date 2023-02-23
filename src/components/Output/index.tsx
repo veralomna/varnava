@@ -4,10 +4,10 @@ import { settingsStore } from "@/stores/SettingsStore"
 import { OutputStore } from "@/stores/OutputStore"
 import Store from "@/stores/Store"
 import { RemoteResourceStatus, resourcesStore } from "@/stores/ResourcesStore"
-import { AlertActionOkay, useModal } from "@/stores/vue-modal"
+import { AlertActionOkay, useModal } from "@/utils/vue-modal"
 import { PlusIcon, StarIcon, TrashIcon, ArrowDownCircleIcon } from "@heroicons/vue/24/solid"
 import { StarIcon as HollowStarIcon } from "@heroicons/vue/24/outline"
-import LinearProgress from "../Shared/LinearProgress"
+import { OutputStatusIndicator } from "./OutputStatusIndicator"
 
 export default defineComponent({
 
@@ -148,6 +148,10 @@ export default defineComponent({
                     </div>
                 }
 
+                if (this.output.progress === 0) {
+                    return null
+                }
+
                 return <img class="w-full h-full object-contain" src={outputUrl} alt="" />
             }
 
@@ -156,12 +160,12 @@ export default defineComponent({
                     return null
                 }
 
-                if (this.output?.progress > 0 || this.output?.progress < 1) {
+                if (this.output?.progress == 1) {
                     return null
                 }
     
-                return <div class="absolute bottom-4 left-4 right-4">
-                    <LinearProgress value={this.output?.progress || 0} />
+                return <div class="absolute top-2 left-2">
+                    <OutputStatusIndicator output={this.output} />
                 </div>
             }
 

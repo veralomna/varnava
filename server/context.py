@@ -2,44 +2,13 @@ import datetime
 import os
 import json
 from dataclasses import dataclass
-from peewee import SqliteDatabase, Model, CharField, BooleanField, UUIDField, DateTimeField, ForeignKeyField, TextField, BigIntegerField, FloatField
+from peewee import SqliteDatabase
 from rendering.generator import ImageGenerator, ImageGeneratorTaskType
 from rendering.resource_manager import RemoteResourceManager
-from ext.database import EnumField, JSONField, generate_uuid
-from ext.singleton import Singleton
+from db.models import db, Project, Prompt, Output
+from lib.singleton import Singleton
+from lib.channel import Channel
 from mashumaro import DataClassDictMixin
-
-# Database models
-_db = SqliteDatabase(None)
-
-class BaseModel(Model):
-    class Meta:
-        database = _db
-
-class Project(BaseModel):
-    id = UUIDField(primary_key=True, default=generate_uuid)
-    createdAt = DateTimeField(default=datetime.datetime.now)
-    title = CharField(max_length=200)
-    isArchived = BooleanField(default=False)
-
-class Prompt(BaseModel):
-    id = UUIDField(primary_key=True, default=generate_uuid)
-    createdAt = DateTimeField(default=datetime.datetime.now)
-    project = ForeignKeyField(Project, field="id", backref="prompts")
-    value = TextField()
-
-class Output(BaseModel):
-    id = UUIDField(primary_key=True, default=generate_uuid)
-    createdAt = DateTimeField(default=datetime.datetime.now)
-    parent = ForeignKeyField("self", null=True, field="id", backref="children")
-    prompt = ForeignKeyField(Prompt, field="id", backref="outputs")
-    seed = BigIntegerField(default=0)
-    progress = FloatField(default=0)
-    type = EnumField(ImageGeneratorTaskType, default=ImageGeneratorTaskType.preview)
-    settings = JSONField(default={})
-    url = TextField()
-    isArchived = BooleanField(default=False)
-    isFavorite = BooleanField(default=False)
 
 # Configuration 
 
@@ -105,7 +74,7 @@ class Context(object):
         
         print("[SRV] Initialising database")
 
-        self.db = _db
+        self.db = db
         self.db.init(self.url_for_db)
         self.db.connect()
         self.db.create_tables([Project, Prompt, Output])
@@ -122,6 +91,7 @@ class Context(object):
 
         print("[SRV] Starting resources manager")
 
+        self.channel = Channel()
         self.resource_manager = RemoteResourceManager(models_url=self.url_for_models_dir)   
 
         print("[SRV] Ready")
