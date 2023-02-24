@@ -9,6 +9,7 @@ import EditPromptModal from "./EditPromptModal"
 import { Transition } from "vue"
 import Store from "@/stores/Store"
 import { OutputStatusIndicator } from "@/components/Output/OutputStatusIndicator"
+import { settingsStore } from "@/stores/SettingsStore"
 
 interface Props {
     prompt : Prompt
@@ -141,7 +142,7 @@ export const PromptEntry = (props : Props) => {
             </div>
         }
         
-        return <div data-output-id={output.id} onClick={() => { props.onShowOutput(output) }} class="relative cursor-pointer bg-neutral-800 aspect-square flex justify-center items-center rounded">
+        return <div data-output-id={output.id} onClick={() => { props.onShowOutput(output) }} class="group/output relative cursor-pointer bg-neutral-800 aspect-square flex justify-center items-center rounded">
             {output.progress > 0 &&
                 <img class="rounded object-contain w-full h-full" alt="" src={`${Store.apiEndpoint}/outputs/${output.url}?progress=${output.progress}`} />
             }
@@ -150,7 +151,7 @@ export const PromptEntry = (props : Props) => {
         </div>
     }
     
-    return <div class="group">
+    return <div>
         {renderPromptValue()}
         <Transition name="fade">
             {renderOutputs()}

@@ -109,7 +109,7 @@ export default defineComponent({
         }
 
         const generateOutput = (prompt : Prompt, count : number) => {
-            if (resourcesStore.isResourceReady(RemoteResourceKind.preview) === true) {
+            if (resourcesStore.isResourceReady(RemoteResourceKind.preview) === false) {
                 const description = resourcesStore.status.value === RemoteResourceStatus.loading 
                     ? "Please wait for all models to download first." 
                     : "Please download all models first."

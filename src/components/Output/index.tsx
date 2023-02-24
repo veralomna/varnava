@@ -47,7 +47,7 @@ export default defineComponent({
         }
 
         const generateUpscale = () => {
-            if (resourcesStore.isResourceReady(RemoteResourceKind.upscale) === true) {
+            if (resourcesStore.isResourceReady(RemoteResourceKind.upscale) === false) {
                 const description = resourcesStore.status.value === RemoteResourceStatus.loading 
                     ? "Please wait for all models to download first." 
                     : "Please download all models first."

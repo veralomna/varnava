@@ -1,6 +1,6 @@
 import { ButtonHTMLAttributes, defineComponent, ref, Transition } from "vue"
-import { ClockIcon } from '@heroicons/vue/24/solid'
-import { Output } from "@/stores/OutputStore"
+import { ClockIcon, ViewfinderCircleIcon } from '@heroicons/vue/24/solid'
+import { Output, OutputType } from "@/stores/OutputStore"
 import { activityStore } from "@/stores/ActivityStore"
 import Store from "@/stores/Store"
 import { DateTime } from "luxon"
@@ -16,7 +16,7 @@ export default defineComponent({
     setup(props : Props, ctx) {
         const router = useRouter()
 
-        const isOpen = ref(false)
+        const isOpen = ref(true)
 
         activityStore.fetch()
 
@@ -25,8 +25,8 @@ export default defineComponent({
 
             // Adding a 'pin' to output ID to make sure the route is updated every navigation 
             // even if the same output is selected.
-            const outputId = `${output.id}:${new Date().getTime()}`
-
+            const outputId = `${output.parent?.id || output.id}:${new Date().getTime()}`
+ 
             router.push({
                 name: "project-details", 
                 params: { 
@@ -88,7 +88,9 @@ export default defineComponent({
             })
 
             return <div class="flex flex-row p-2">
-                <span class={`h-20 bg-cover aspect-[1] bg-black rounded`} style={`background-image: url("${Store.apiEndpoint}/outputs/${output.url}?progress=${output.progress}")`} />
+                <span class={`relative h-20 bg-cover aspect-[1] bg-black rounded`} style={`background-image: url("${Store.apiEndpoint}/outputs/${output.url}?progress=${output.progress}")`}>
+                    {output.type === OutputType.upscale ? <span class="absolute right-1 top-1 tracking-tight text-3xs font-mono uppercase font-bold box-shadow-2xl bg-neutral-800/50 px-1">upscale</span> : null }
+                </span>
                 <div class="pl-4 flex flex-col items-end">
                     <strong class="text-sm w-full" style="display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;">{output.prompt.project.title}</strong>
                     <strong class="mt-0.5 leading-tight text-xs font-mono" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{output.prompt.value}</strong>

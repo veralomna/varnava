@@ -17,6 +17,7 @@ export interface Output {
     seed : number
     type : OutputType
     url : string
+    parent? : Output
     children : Output[]
     progress : number // 0 means waiting, (0, 1) means in process, 1 means fully completed
     settings : { [key : string] : any }
