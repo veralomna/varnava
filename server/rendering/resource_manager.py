@@ -36,8 +36,7 @@ class RemoteResourceManager:
         # All models that need to be downloaded
         self.resources = [
             RemoteResource(name="Preview Model", path="stabilityai/stable-diffusion-2-1", revision="fp16"),
-            RemoteResource(name="Upscaling Model", path="stabilityai/stable-diffusion-x4-upscaler", revision="fp16"),
-            RemoteResource(name="Variations Model", path="lambdalabs/sd-image-variations-diffusers", revision="v2.0")
+            RemoteResource(name="Upscale Model", path="stabilityai/stable-diffusion-x4-upscaler", revision="fp16"),
         ]
 
         # Current resource being downloaded

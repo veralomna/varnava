@@ -8,7 +8,7 @@ from time import sleep
 from typing import Callable, Any
 from uuid import UUID
 from enum import Enum, unique
-from diffusers import StableDiffusionUpscalePipeline, StableDiffusionImageVariationPipeline, StableDiffusionPipeline, DPMSolverMultistepScheduler, DDIMScheduler, LMSDiscreteScheduler, DEISMultistepScheduler, HeunDiscreteScheduler, DPMSolverSinglestepScheduler
+from diffusers import StableDiffusionUpscalePipeline, StableDiffusionPipeline, DPMSolverMultistepScheduler, DDIMScheduler, LMSDiscreteScheduler, DEISMultistepScheduler, HeunDiscreteScheduler, DPMSolverSinglestepScheduler
 from mashumaro import DataClassDictMixin
 from .approximation import ApproximateDecoder
 from PIL import Image
@@ -18,7 +18,6 @@ from torchvision import transforms
 class ImageGeneratorTaskType(str, Enum):
     preview = "preview"
     upscale = "upscale"
-    variation = "variation"
 
 @dataclass 
 class ImageGeneratorTaskUpscaleSettings(DataClassDictMixin):
@@ -74,17 +73,19 @@ class ImageGenerator:
         self.daemon : Thread | None = None
 
         # No processing pipe in the beginning
-        self.pipe : StableDiffusionPipeline | StableDiffusionUpscalePipeline | StableDiffusionImageVariationPipeline | None = None
+        self.pipe : StableDiffusionPipeline | StableDiffusionUpscalePipeline | None = None
 
         # Max memory available (in GB)
         if torch.cuda.is_available():
             self.device_name = "cuda"
             self.total_vram_amount = torch.cuda.get_device_properties(0).total_memory / 1024 / 1024 / 1024
             self.base_dimension = 768
+            self.upscaled_dimension = 2048
         else:
             self.device_name = "mps"
             self.total_vram_amount = 16
             self.base_dimension = 512
+            self.upscaled_dimension = 968
 
         # Approximate image decoder
         self.approximate_image_decoder : ApproximateDecoder | None = None
@@ -130,11 +131,8 @@ class ImageGenerator:
             else:
                 seed = 0
 
-            if task.settings.type == ImageGeneratorTaskType.variation:
-                max_steps = 50
-            elif task.settings.type == ImageGeneratorTaskType.upscale:
+            if task.settings.type == ImageGeneratorTaskType.upscale:
                 max_steps = 75
-
 
             width = self.base_dimension
             height = self.base_dimension
@@ -194,34 +192,6 @@ class ImageGenerator:
                     image=source_image
                 ).images
 
-            elif task.settings.type == ImageGeneratorTaskType.variation and isinstance(self.pipe, StableDiffusionImageVariationPipeline):
-                source_image = Image.open(task.settings.initial_url)
-
-                tform = transforms.Compose([
-                    transforms.ToTensor(),
-                    transforms.Resize(
-                        (224, 224),
-                        interpolation=transforms.InterpolationMode.BICUBIC,
-                        antialias=False,
-                    ),
-                    transforms.Normalize(
-                        [0.48145466, 0.4578275, 0.40821073],
-                        [0.26862954, 0.26130258, 0.27577711]
-                    ),
-                ])
-
-                source_image = tform(source_image).to(self.device_name).unsqueeze(0)
-
-                images = self.pipe(
-                    image=source_image,
-                    width=width,
-                    height=height,
-                    num_inference_steps=max_steps,
-                    num_images_per_prompt=len(task.outputs),
-                    callback=handle_callback,
-                    callback_steps=1
-                ).images
-
             if torch.cuda.is_available():            
                 torch.cuda.empty_cache()
                 torch.cuda.ipc_collect()
@@ -270,16 +240,8 @@ class ImageGenerator:
         elif settings.type == ImageGeneratorTaskType.upscale:
             pipe = StableDiffusionUpscalePipeline.from_pretrained(
                 "stabilityai/stable-diffusion-x4-upscaler",
-                torch_dtype=torch.float16, 
+                torch_dtype=torch.float16 if self.device_name == "cuda" else torch.float32, 
                 revision="fp16",
-                cache_dir=self.models_url,
-                local_files_only=True
-            )
-
-        elif settings.type == ImageGeneratorTaskType.variation:
-            pipe = StableDiffusionImageVariationPipeline.from_pretrained(
-                "lambdalabs/sd-image-variations-diffusers",
-                revision="v2.0",
                 cache_dir=self.models_url,
                 local_files_only=True
             )
@@ -302,7 +264,6 @@ class ImageGenerator:
         if settings.type == ImageGeneratorTaskType.upscale:
             print("[GEN] Attention slicing is enabled")
             pipe.enable_attention_slicing()
-            pipe.enable_sequential_cpu_offload()
 
         # TODO: create better mapping for this size
         if self.total_vram_amount <= 17:

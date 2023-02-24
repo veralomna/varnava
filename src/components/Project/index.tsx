@@ -9,7 +9,7 @@ import { PromptEntry } from "./PromptEntry"
 import EditProjectModal from "./EditProjectModal"
 import PromptEditor from "@/components/Shared/PromptEditor"
 import { settingsStore } from "@/stores/SettingsStore"
-import { RemoteResourceStatus, resourcesStore } from "@/stores/ResourcesStore"
+import { RemoteResourceStatus, RemoteResourceKind, resourcesStore } from "@/stores/ResourcesStore"
 import useKeyDown from "@/utils/useKeydown"
 
 export default defineComponent({
@@ -109,7 +109,7 @@ export default defineComponent({
         }
 
         const generateOutput = (prompt : Prompt, count : number) => {
-            if (resourcesStore.status.value !== RemoteResourceStatus.ready) {
+            if (resourcesStore.isResourceReady(RemoteResourceKind.preview) === true) {
                 const description = resourcesStore.status.value === RemoteResourceStatus.loading 
                     ? "Please wait for all models to download first." 
                     : "Please download all models first."

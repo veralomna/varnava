@@ -128,7 +128,7 @@ export const PromptEntry = (props : Props) => {
                 return null
             }
 
-            return <StarIcon class="absolute top-4 right-4 w-6 h-6 fill-white drop-shadow-md" />
+            return <StarIcon class="absolute top-4 right-4 w-6 h-6 fill-white box-shadow-md" />
         }
 
         const renderLoadingProgress = () => {

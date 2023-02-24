@@ -27,40 +27,42 @@ export interface Output {
 /* State */
 
 export interface OutputState extends Object {
+    masterOutput : Output | null
     currentVariationIndex : number
     currentScale : number
-    variations : Output[]
     isInitialLoading : boolean
     isUpscaling : boolean
-    isVariating : boolean
 }
 
 export class OutputStore extends Store<OutputState> {
 
     protected data() : OutputState {
         return {
+            masterOutput: null,
             currentVariationIndex: 0,
             currentScale: 1,
-            variations: [],
             isInitialLoading: true,
             isUpscaling: false,
-            isVariating: false
         }
     }
 
     public get currentOutput() {
         return computed(() => {
-            const baseOutput = this.state.variations[this.state.currentVariationIndex]
+            const masterOutput = this.state.masterOutput
+
+            if (masterOutput === null) {
+                return null
+            }
 
             if (this.state.currentScale === this.baseScale.value) {
-                return baseOutput
+                return masterOutput
             }
             else {
-                if (typeof baseOutput?.children === "undefined") {
+                if (typeof masterOutput.children === "undefined") {
                     return null
                 }
                 
-                const upscaledOutputs = baseOutput.children.filter(output => {
+                const upscaledOutputs = masterOutput.children.filter(output => {
                     return output.type === OutputType.upscale && output.settings.upscale?.dimension === this.state.currentScale
                 })
 
@@ -118,17 +120,7 @@ export class OutputStore extends Store<OutputState> {
     public async fetch() {
         try {
             const result = await (await this.fetchApi(`/projects/${this.projectId}/output/${this.masterOutputId}`)).json()
-
-            // Getting all variations including the original output.
-            let output = result["output"]
-            let variations = output.children.filter((child : Output)  => child.type == OutputType.variation)
-
-            variations = [output].concat(variations.map((child : Output) => {
-                child["createdAt"] = new Date(child["createdAt"])
-                return child
-            }))
-
-            this.state.variations = variations
+            this.state.masterOutput = result["output"]
         }
         catch (error) {
 
@@ -149,14 +141,19 @@ export class OutputStore extends Store<OutputState> {
     }
 
     public updateWithBestAvailableScale() {
-        const baseOutput = this.state.variations[this.state.currentVariationIndex]
-        const upscaledOutputs = baseOutput.children?.filter(output => output.type === OutputType.upscale)
+        const masterOutput = this.state.masterOutput
+
+        if (masterOutput === null) {
+            return
+        }
+
+        const upscaledOutputs = masterOutput.children?.filter(output => output.type === OutputType.upscale)
 
         if (typeof upscaledOutputs === "undefined" || upscaledOutputs.length === 0) {
             this.state.currentScale = this.baseScale.value
         }
         else {
-            const biggestScale = baseOutput.children.filter(output => {
+            const biggestScale = masterOutput.children.filter(output => {
                 return output.type === OutputType.upscale
             }).reduce((result, next) => {
                 if (next.settings.upscale?.dimension > result) {
@@ -175,43 +172,19 @@ export class OutputStore extends Store<OutputState> {
         
         try {
             // Getting current prompt (variation at 0th index is always the first one)
-            const masterOutput = this.state.variations[0]
-            const currentOutput = this.state.variations[this.state.currentVariationIndex]
+            const masterOutput = this.state.masterOutput
 
-            let settings = currentOutput.settings
+            if (masterOutput === null) {
+                return
+            }
+
+            let settings = masterOutput.settings
             settings["type"] = OutputType.upscale
             settings["batch"] = 1
             settings["upscale"] = {
                 "dimension" : this.state.currentScale
             }
             
-            // Adding upscale output
-            await this.fetchApi(`/projects/${this.projectId}/prompts/${masterOutput.prompt.id}/generate`, {
-                method : "POST",
-                body: JSON.stringify({
-                    parent_id : currentOutput.id,
-                    settings: settings
-                })
-            })
-        }
-        catch (error) {
-
-        }
-
-        this.state.isUpscaling = false
-    }
-
-    public async generateVariation() {
-        this.state.isVariating = true
-
-        try {
-            // Getting current prompt (variation at 0th index is always the first one)
-            const masterOutput = this.state.variations[0]
-
-            let settings = masterOutput.settings
-            settings["type"] = OutputType.variation
-            settings["batch"] = 1
-
             // Adding upscale output
             await this.fetchApi(`/projects/${this.projectId}/prompts/${masterOutput.prompt.id}/generate`, {
                 method : "POST",
@@ -225,20 +198,24 @@ export class OutputStore extends Store<OutputState> {
 
         }
 
-        this.state.isVariating = false
+        this.state.isUpscaling = false
     }
 
     public async setFavorite(isFavorite : Boolean) {
         try {
             // Getting current prompt (variation at 0th index is always the first one)
-            const currentOutput = this.state.variations[this.state.currentVariationIndex]
+            const masterOutput = this.state.masterOutput
+
+            if (masterOutput === null) {
+                return
+            }
 
             // We need to set favorite to each the base version and to the upscaled version if it exists
-            const upscaledOutputs = currentOutput.children.filter(output => {
+            const upscaledOutputs = masterOutput.children.filter(output => {
                 return output.type === OutputType.upscale
             })
 
-            const allOutputs = upscaledOutputs.concat([currentOutput])
+            const allOutputs = upscaledOutputs.concat([masterOutput])
 
             for (const output of allOutputs) {
                 await this.fetchApi(`/projects/${this.projectId}/output/${output.id}/favorite`, {

@@ -3,7 +3,7 @@ import { useRoute, useRouter } from "vue-router"
 import { settingsStore } from "@/stores/SettingsStore"
 import { OutputStore } from "@/stores/OutputStore"
 import Store from "@/stores/Store"
-import { RemoteResourceStatus, resourcesStore } from "@/stores/ResourcesStore"
+import { RemoteResourceKind, RemoteResourceStatus, resourcesStore } from "@/stores/ResourcesStore"
 import { AlertActionOkay, useModal } from "@/utils/vue-modal"
 import { PlusIcon, StarIcon, TrashIcon, ArrowDownCircleIcon } from "@heroicons/vue/24/solid"
 import { StarIcon as HollowStarIcon } from "@heroicons/vue/24/outline"
@@ -42,40 +42,12 @@ export default defineComponent({
             close(event)
         }
 
-        const scrollVariations = (event : WheelEvent) => {
-            const target = event.currentTarget as HTMLElement
-            target.scrollLeft += event.deltaY
-        }
-
-        const generateVariation = () => {
-            if (resourcesStore.status.value !== RemoteResourceStatus.ready) {
-                const description = resourcesStore.status.value === RemoteResourceStatus.loading 
-                    ? "Please wait for all models to download first." 
-                    : "Please download all models first."
-
-                modal.presentAlert({
-                    title: "Cannot create images",
-                    description: description,
-                    actions: [
-                        AlertActionOkay
-                    ]
-                })
-                return
-            }
-            
-            outputStore.generateVariation()
-        }
-
-        const updateVariation = (index : number) => {
-            outputStore.updateVariation(index)
-        }
-
         const updateScale = (scale : number) => {
             outputStore.updateScale(scale)
         }
 
         const generateUpscale = () => {
-            if (resourcesStore.status.value !== RemoteResourceStatus.ready) {
+            if (resourcesStore.isResourceReady(RemoteResourceKind.upscale) === true) {
                 const description = resourcesStore.status.value === RemoteResourceStatus.loading 
                     ? "Please wait for all models to download first." 
                     : "Please download all models first."
@@ -105,9 +77,6 @@ export default defineComponent({
         return {
             closeWithBackdrop,
             close,
-            scrollVariations,
-            generateVariation,
-            updateVariation,
             updateScale,
             generateUpscale,
             downloadOutput,
@@ -204,7 +173,7 @@ export default defineComponent({
             }
 
             const renderActions = () => {
-                if (this.output === null || this.output.progress < 1) {
+                if (this.output === null || this.output.progress === 0) {
                     return <div class="flex flex-col gap-4">
                         <span class="block leading-5 text-sm text-white/50">Upscaled version was not created yet. Press the button below to create it.</span>
 
@@ -212,6 +181,10 @@ export default defineComponent({
                             <PlusIcon class="w-6 h-6" /> Create Image
                         </button>
                     </div>
+                }
+
+                if (this.output.progress > 0 && this.output.progress < 1) {
+                    return <span class="block leading-5 text-sm text-white/50">Upscaled version is being generated. Please wait.</span>
                 }
 
                 return <div class="flex gap-4">
@@ -253,20 +226,6 @@ export default defineComponent({
                     <div class="flex">
                         {renderImage()}
                         {renderMeta()}
-                    </div>
-                    <div onWheel={this.scrollVariations} class="relative h-24 w-full mt-4 overflow-x-auto overflow-y-hidden no-scrollbar">
-                        <ul class="absolute top-0 left-0 flex gap-4">
-                            <li onClick={this.generateVariation} class="select-none cursor-pointer w-24 h-24 border-2 opacity-50 hover:opacity-100 leading-5 rounded">
-                                <span class="w-full h-full flex justify-center items-center text-center">
-                                    Create<br /> Variation
-                                </span>
-                            </li>
-                            {this.outputState.variations.map((variation, index) => {
-                                return <li onClick={() => { this.updateVariation(index) }} class={`select-none cursor-pointer relative w-24 h-24 rounded ${index == this.outputState.currentVariationIndex ? "after:block" : "after:hidden hover:after:block"} after:rounded after:content-[''] after:absolute after:top-0 after:bottom-0 after:right-0 after:left-0 after:border-2`}>
-                                    <img class="w-full h-full object-contain" src={`${Store.apiEndpoint}/outputs/${variation.url}?progress=${variation.progress}`} alt="" />
-                                </li>
-                            })}
-                        </ul>
                     </div>
                 </div>
             </div>

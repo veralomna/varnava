@@ -1,6 +1,11 @@
 import { computed } from "vue"
 import Store from "./Store"
 
+export enum RemoteResourceKind {
+    preview = "Preview Model",
+    upscale = "Upscale Model"
+}
+
 export enum DataPathUpdateStatus {
     updated = "updated",
     pathNotFound = "path-not-found",
@@ -60,6 +65,16 @@ export class ResourcesStore extends Store<ResourcesState> {
             
             return RemoteResourceStatus.ready
         })
+    }
+
+    public isResourceReady(kind : RemoteResourceKind) {
+        const resource = this.state.resources.filter(resource => resource.name === kind)[0]
+
+        if (resource.downloaded_file_bytes < resource.total_file_bytes) {
+            return false
+        }
+
+        return true
     }
 
     public async fetch() {

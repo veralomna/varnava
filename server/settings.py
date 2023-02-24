@@ -10,7 +10,7 @@ async def list_prompts_settings(request):
     return json({
         "constants" : {
             "base_dimension" : Context.instance().generator.base_dimension,
-            "upscaled_dimension" : 2048,
+            "upscaled_dimension" : Context.instance().generator.upscaled_dimension,
         },
         "settings" : [
             {
