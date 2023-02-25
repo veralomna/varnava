@@ -21,19 +21,25 @@ export class ActivityStore extends Store<ActivityState> {
 
     public get unfinishedOutputsCount() {
         return computed(() => {
-            return this.state.outputs.filter(output => output.progress !== 1).length
+            return this.state.outputs.filter(output => output.progress < 1).length
         })
     }
 
     constructor() {
         super()
 
-        messagingClient.addListener(MessagingClientEvent.outputCreated, output => {
-            this.fetch()
+        messagingClient.addListener(MessagingClientEvent.outputCreated, (output : Output) => {
+            this.state.outputs.unshift(this.processOutput(output))
         })
 
-        messagingClient.addListener(MessagingClientEvent.outputUpdated, output => {
-            this.fetch()
+        messagingClient.addListener(MessagingClientEvent.outputUpdated, (output : Output) => {
+            const index = this.state.outputs.findIndex(existingOutput => output.id === existingOutput.id)
+            
+            if (index === -1) {
+                return
+            }
+
+            this.state.outputs[index] = this.processOutput(output)
         })
     }
 
@@ -44,16 +50,22 @@ export class ActivityStore extends Store<ActivityState> {
             const result = await (await this.fetchApi(`/outputs/1`)).json()
             const outputs = result["outputs"]
                 
-            this.state.outputs = outputs.map((item: Output) => {
-                item["createdAt"] = new Date(item["createdAt"])
-                return item
-            })
+            this.state.outputs = outputs.map((output: Output) => this.processOutput(output))
         }
         catch (error) {
 
         }
 
         this.state.isLoading = false
+    }
+    
+    protected processOutput(output : Output): Output {
+        let processedOutput = output
+
+        processedOutput["createdAt"] = new Date(processedOutput["createdAt"])
+        processedOutput["url"] = processedOutput["url"].replace("\\", "/")
+
+        return processedOutput
     }
 
 }

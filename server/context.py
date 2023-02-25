@@ -92,7 +92,8 @@ class Context(object):
         print("[SRV] Starting resources manager")
 
         self.channel = Channel()
-        self.resource_manager = RemoteResourceManager(models_url=self.url_for_models_dir)   
+        self.resource_manager = RemoteResourceManager(models_url=self.url_for_models_dir, 
+                                                      channel=self.channel)   
 
         print("[SRV] Ready")
 

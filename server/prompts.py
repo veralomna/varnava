@@ -21,7 +21,7 @@ async def list_all_prompts(request, project_id: UUID):
     prompts = []
 
     for raw_prompt in raw_prompts:
-        raw_outputs = Output.select().where(Output.prompt == raw_prompt, Output.parent.is_null()).order_by(Output.createdAt.desc())
+        raw_outputs = Output.select().where(Output.prompt == raw_prompt, Output.isArchived == False, Output.parent.is_null()).order_by(Output.createdAt.desc())
 
         prompt = model_to_dict(raw_prompt, recurse=False, backrefs=True)
         prompt["outputs"] = list(

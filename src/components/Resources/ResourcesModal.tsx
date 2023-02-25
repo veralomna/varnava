@@ -264,7 +264,7 @@ export default defineComponent({
                     
                         <Button onClick={this.browseDataPath}
                                 class="ml-4 shrink-0"
-                                title="Update" />
+                                title="Browse" />
                     </div>
                 }
             }

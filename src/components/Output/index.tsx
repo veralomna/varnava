@@ -4,7 +4,7 @@ import { settingsStore } from "@/stores/SettingsStore"
 import { OutputStore } from "@/stores/OutputStore"
 import Store from "@/stores/Store"
 import { RemoteResourceKind, RemoteResourceStatus, resourcesStore } from "@/stores/ResourcesStore"
-import { AlertActionOkay, useModal } from "@/utils/vue-modal"
+import { AlertActionCancel, AlertActionOkay, useModal } from "@/utils/vue-modal"
 import { PlusIcon, StarIcon, TrashIcon, ArrowDownCircleIcon } from "@heroicons/vue/24/solid"
 import { StarIcon as HollowStarIcon } from "@heroicons/vue/24/outline"
 import { OutputStatusIndicator } from "./OutputStatusIndicator"
@@ -65,7 +65,7 @@ export default defineComponent({
             outputStore.generateUpscale()
         }
 
-        const downloadOutput = async (url : string) => {   
+        const download = async (url : string) => {   
             window.open(url, "_blank")
         }
 
@@ -74,16 +74,38 @@ export default defineComponent({
             await outputStore.setFavorite(newFavorite)
         }
 
+        const toggleArchived = async () => {
+            const result = await modal.presentAlert({
+                title: "Archiving image",
+                description: "Are you sure you want to archive the image?",
+                actions: [
+                    {
+                        name: "Archive",
+                        type: "destructive"
+                    },
+                    AlertActionCancel
+                ]
+            })
+
+            if (result?.name !== "Archive") {
+                return 
+            }
+
+            await outputStore.setArchived(true)
+            router.back()
+        }
+
         return {
             closeWithBackdrop,
             close,
             updateScale,
             generateUpscale,
-            downloadOutput,
+            download: download,
             toggleFavorite,
+            toggleArchived,
             outputState : outputStore.getState(),
             availableScales : outputStore.availableOutputScales,
-            output : outputStore.currentOutput
+            output : outputStore.currentOutput,
         }
     },
 
@@ -134,7 +156,7 @@ export default defineComponent({
                 }
     
                 return <div class="absolute top-2 left-2">
-                    <OutputStatusIndicator output={this.output} />
+                    <OutputStatusIndicator size="big" output={this.output} />
                 </div>
             }
 
@@ -188,13 +210,13 @@ export default defineComponent({
                 }
 
                 return <div class="flex gap-4">
-                    <button onClick={() => { this.downloadOutput(outputUrl) }} class="group w-full font-medium bg-blue-700 hover:bg-blue-600 gap-2 text-center rounded flex justify-center items-center p-2">
+                    <button onClick={() => { this.download(outputUrl) }} class="group w-full font-medium bg-blue-700 hover:bg-blue-600 gap-2 text-center rounded flex justify-center items-center p-2">
                         <ArrowDownCircleIcon class="group-hover:scale-110 transition-all w-6 h-6" />
                     </button>
                     <button onClick={this.toggleFavorite} class={`group w-full font-medium ${this.output.isFavorite === false ? "bg-blue-700 hover:bg-blue-600" : "bg-yellow-700 hover:bg-yellow-600"} gap-2 text-center rounded flex justify-center items-center p-2`}>
                     {this.output.isFavorite === false ? <HollowStarIcon class="group-hover:scale-110 transition-all w-6 h-6" /> : <StarIcon class="group-hover:scale-110 transition-all w-6 h-6" />}
                     </button>
-                    <button class="group w-full font-medium bg-red-700 hover:bg-red-600 gap-2 text-center rounded flex justify-center items-center p-2">
+                    <button onClick={this.toggleArchived} class="group w-full font-medium bg-red-700 hover:bg-red-600 gap-2 text-center rounded flex justify-center items-center p-2">
                         <TrashIcon class="group-hover:scale-110 transition-all w-6 h-6" /> 
                     </button>
 

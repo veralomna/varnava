@@ -138,7 +138,7 @@ export const PromptEntry = (props : Props) => {
             }
 
             return <div class="absolute left-2 top-2">
-                <OutputStatusIndicator output={output} />
+                <OutputStatusIndicator size="big" output={output} />
             </div>
         }
         

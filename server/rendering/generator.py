@@ -18,6 +18,7 @@ from torchvision import transforms
 class ImageGeneratorTaskType(str, Enum):
     preview = "preview"
     upscale = "upscale"
+    variation = "variation"
 
 @dataclass 
 class ImageGeneratorTaskUpscaleSettings(DataClassDictMixin):
@@ -93,7 +94,7 @@ class ImageGenerator:
         # Original convolution initialiser
         self._original_conv_init = torch.nn.Conv2d.__init__
 
-        print(f"[GEN] Generator is ready with {self.total_vram_amount}GB VRAM available.")
+        print(f"[GEN] Generator is ready at '{self.device_name}' with {self.total_vram_amount}GB VRAM available.")
 
     def start(self):
         self.daemon = Thread(target=self.execute_tasks, daemon=True, name="varnava-image-generator")
@@ -122,7 +123,7 @@ class ImageGenerator:
                 generator = None
 
             max_steps = task.settings.steps
-            guidance_scale = task.settings.strength * 12.5
+            guidance_scale = task.settings.strength * 40
             aspect = task.settings.dimensions
             
             if self.device_name == "cuda":

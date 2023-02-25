@@ -2,7 +2,8 @@ import Store from "@/stores/Store"
 
 export enum MessagingClientEvent {
     outputUpdated = "output.updated",
-    outputCreated = "output.created"
+    outputCreated = "output.created",
+    resourcesUpdated  = "resources.update"
 }
 
 interface MessagingClientListener {

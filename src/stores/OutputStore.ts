@@ -233,5 +233,35 @@ export class OutputStore extends Store<OutputState> {
 
         }
     }
+
+    public async setArchived(isArchived : Boolean) {
+        try {
+             // Getting current prompt (variation at 0th index is always the first one)
+             const masterOutput = this.state.masterOutput
+
+             if (masterOutput === null) {
+                return
+            }
+
+            // We need to set favorite to each the base version and to the upscaled version if it exists
+            const upscaledOutputs = masterOutput.children.filter(output => {
+                return output.type === OutputType.upscale
+            })
+
+            const allOutputs = upscaledOutputs.concat([masterOutput])
+            
+            for (const output of allOutputs) {
+                await this.fetchApi(`/projects/${this.projectId}/output/${output.id}/archive`, {
+                    method: "PATCH",
+                    body: JSON.stringify({
+                        is_archived : isArchived
+                    })
+                }) 
+            }
+        }
+        catch (error) {
+            console.log("Error", error)
+        }
+    }
   
 }

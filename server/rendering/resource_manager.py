@@ -8,6 +8,7 @@ from huggingface_hub.hf_api import HfApi
 from huggingface_hub._snapshot_download import snapshot_download
 from huggingface_hub.file_download import repo_folder_name
 from mashumaro import DataClassDictMixin
+from lib.channel import Channel
 
 @dataclass
 class RemoteResource(DataClassDictMixin):
@@ -20,7 +21,10 @@ class RemoteResource(DataClassDictMixin):
 
 class RemoteResourceManager:
     
-    def __init__(self, models_url : str):
+    def __init__(self, models_url : str, channel : Channel):
+        # Storing channel to send quick updates
+        self.channel = channel
+
         # Models location URL
         self.models_url = models_url
 
@@ -113,6 +117,8 @@ class RemoteResourceManager:
 
         self.download_process = None
 
+        self.channel.send("resources.update", {})
+
     def remove_downloads(self):
         self.stop_downloading()
         
@@ -125,6 +131,8 @@ class RemoteResourceManager:
                 break
 
             self.fetch_resources_local_information()
+            
+            self.channel.send("resources.update", {})
         
     def download(self):
         for index, resource in enumerate(self.resources):

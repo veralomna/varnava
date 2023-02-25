@@ -60,6 +60,38 @@ async def get_output(request, project_id: UUID, output_id: UUID):
         "output" : model_to_dict(output, recurse=True, backrefs=True)
     })
 
+# Setting output archived status
+@outputs.patch("/projects/<project_id:uuid>/output/<output_id:uuid>/archive")
+async def set_archived(request, project_id : UUID, output_id : UUID):
+    input = request.json if request.json is not None else {}
+
+    project = Project.get_or_none(id = project_id)
+
+    if project is None:
+        return json({
+            "error" : "not-found",
+            "error-details" : {
+                "kind" : "project"
+            }
+        }, status=404)
+    
+    output = Output.get_or_none(id = output_id)
+
+    if output is None:
+        return json({
+            "error" : "not-found",
+            "error-details" : {
+                "kind" : "output"
+            }
+        }, status=404)
+    
+    output.isArchived = input["is_archived"] if "is_archived" in input else False
+    output.save()
+
+    return json({
+        "output" : model_to_dict(output, recurse=True, backrefs=True)
+    })
+
 # Setting output favorite status
 @outputs.patch("/projects/<project_id:uuid>/output/<output_id:uuid>/favorite")
 async def set_favorite(request, project_id : UUID, output_id : UUID):
@@ -134,9 +166,7 @@ async def add_output(request, project_id: UUID, prompt_id: UUID):
             output.progress = progress
             output.save()
 
-            Context.instance().channel.send("output.updated", {
-                "output" : model_to_dict(output)
-            })
+            Context.instance().channel.send("output.updated", model_to_dict(output))
 
     # Scheduling generator task to the backend generator
     task = ImageGeneratorTask(
@@ -157,7 +187,7 @@ async def add_output(request, project_id: UUID, prompt_id: UUID):
     # Adding outputs according to the supplied size
     for i in range(size):
         id = uuid4()
-        relative_url = os.path.join(str(prompt.id), str(id) + ".jpg")
+        relative_url = str(prompt.id) + "/" + str(id) + ".jpg"
         absolute_url = Context.instance().url_for_output(relative_url)
 
         # Ensuring the output directory exists
@@ -175,9 +205,7 @@ async def add_output(request, project_id: UUID, prompt_id: UUID):
 
         output.save(force_insert=True)
 
-        Context.instance().channel.send("output.created", {
-            "output" : model_to_dict(output)
-        })
+        Context.instance().channel.send("output.created", model_to_dict(output))
 
         task.outputs.append(ImageGeneratorOutput(
             id=id,

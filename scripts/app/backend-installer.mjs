@@ -24,7 +24,8 @@ export class BackendInstaller {
         {"name": "sanic-ext", "version": "22.12.0"},
         {"name": "tqdm", "version": "4.64.1"}, 
         {"name": "mashumaro", "version": "3.3"},
-        {"name": "wheel", "version": "0.38.4"}
+        {"name": "wheel", "version": "0.38.4"},
+        {"name": "scipy", "version": "1.10.0"}
     ]
 
     progress = new ProgressTracker()

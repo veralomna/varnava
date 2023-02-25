@@ -1,3 +1,4 @@
+import { messagingClient, MessagingClientEvent } from "@/utils/MessagingClient"
 import { computed } from "vue"
 import Store from "./Store"
 
@@ -64,6 +65,14 @@ export class ResourcesStore extends Store<ResourcesState> {
             }
             
             return RemoteResourceStatus.ready
+        })
+    }
+
+    public constructor() {
+        super()
+
+        messagingClient.addListener(MessagingClientEvent.resourcesUpdated, () => {
+            this.fetch()
         })
     }
 

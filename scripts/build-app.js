@@ -23,6 +23,8 @@ const buildBundle = async () => {
             output: "build/release/"
         },
 
+        icon: "assets/icon.png",
+
         files: [
             "build/dist/**",
            
