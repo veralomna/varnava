@@ -15,6 +15,7 @@ interface Props {
     prompt : Prompt
     project : Project
     gridSize : PromptGridSize
+    index : number
     isVisible : Boolean
     onAddMore : Function
     onShowOutput : Function
@@ -78,7 +79,7 @@ export const PromptEntry = (props : Props) => {
     }
 
     const renderPromptValue = () => {
-        return <div class={`backdrop-blur-md flex sticky ${Store.isInApp === true ? "top-[-3px] py-2" : "top-[-19px] py-2"} bg-neutral-900/[.9] z-50`}> 
+        return <div style={`z-index: ${10000 - props.index};`} class={`backdrop-blur-md flex sticky ${Store.isInApp === true ? "top-[-3px] py-2" : "top-[-19px] py-2"} bg-neutral-900/[.9]`}> 
             <div class="flex flex-col justify-between">
                 <h2 class="text-s font-mono tracking-tight leading-5"> 
                     <a onClick={() => { props.onToggleCollapse(props.prompt) }} class="cursor-pointer hover:brightness-75" href="#">

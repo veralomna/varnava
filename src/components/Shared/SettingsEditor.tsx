@@ -61,7 +61,7 @@ export default defineComponent({
             localSettings,
             localSettingsVisibility,
             settingsState : settingsStore.getState(),
-            additionalSettingsNames : ["method", "batch"],
+            additionalSettingsNames : ["seamless", "batch"],
             onDocumentClick
         }
     },

@@ -250,7 +250,7 @@ export default defineComponent({
 
     render() {
         const renderTitle = () => {
-            return <div class="flex items-center">
+            return <div class="flex items-center select-none">
                 <h2 class="text-4xl font-semibold mr-4">{this.project.title}</h2>   
                 <a class="pt-2 text-blue-500 hover:text-blue-400" href="#" onClick={this.openHome}>⤶ All Projects</a>
                 <a class="ml-auto pt-2" href="#" onClick={this.openProjectSettings}>
@@ -267,10 +267,11 @@ export default defineComponent({
             }
             else {
                 return <ul class="mt-6">
-                    {this.promptState.prompts.map((prompt : Prompt) => {
+                    {this.promptState.prompts.map((prompt : Prompt, index) => {
                         return <li class="mb-6 pb-6 border-b border-neutral-800">
                             <PromptEntry isVisible={this.getPromptVisibility(prompt)} 
                                          gridSize={this.getPromptGridSize(prompt)} 
+                                         index={index}
                                          onToggleGridSize={this.toggleGridSize} 
                                          onToggleCollapse={this.toggleCollapse} 
                                          onShowOutput={this.showOutput} 
