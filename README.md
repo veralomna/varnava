@@ -5,7 +5,7 @@ Varnava is a neural art management tool powered by Stable Diffusion. Varnava is 
 > The purpose of Varnava is to provide self-contained self-contained environment which can be easy to install and update. 
 
 <br />
-<img src="https://user-images.githubusercontent.com/78038/220036882-fef3246f-d839-462b-b095-0379c12638e7.png" width="500" />
+<img src="https://user-images.githubusercontent.com/78038/221606253-c3ff360d-48ef-4a7e-951c-abe748daf170.png" width="530" />
 
 ## Main Features
 
@@ -15,47 +15,60 @@ Varnava is a neural art management tool powered by Stable Diffusion. Varnava is 
 - **Queued generation**: schedule any number of images to be generated for any number of prompts and Varnava will update the images as soon as they are ready.
 - **Dynamic generation settings** per output for maximum flexibility.
 - **Upscale** images that you like the most and export them.
-- Generate **variations** of your images.
+- **Variate** images by locking image seeds via user interface.
 
 ## Requirements 
 
 - Windows 10+
-- GPU with CUDA support and at least 8GB of VRAM
-- 30GB of disk space (8GB for runtime and 22GB for Stable Diffusion models)
+  - GPU with CUDA support and at least 8GB of VRAM
+- macOS 12.0+
+  - M1/M2 SoC with at least 15GB of RAM
+- 21GB of disk space (4GB for runtime and 17GB for Stable Diffusion models)
 
-The following GPUs have been tested so far:
+The following setups have been tested so far:
 
-- NVIDIA RTX 4080
-- NVIDIA RTX 4090
-- NVIDIA RTX 3090 TI
-- NVIDIA RTX 3090
+- Windows 11
+  - NVIDIA RTX 4080
+  - NVIDIA RTX 4090
+  - NVIDIA RTX 3090 TI
+  - NVIDIA RTX 3090
+- macOS 13.0
+  - M1 Pro
+  - M1 Max
 
 ## Installation
 
 1. Download the installer from the releases page on Github and run the installer.
 2. Varnava will download necessary dependencies on the first launch (it will take a while, please have patience).
-3. Go to *Models* dialog, select a directory where you want to store Stable Diffusion models and start downloading them (it will take a while to download about 20GB of models).
+3. Go to *Models* dialog, select a directory where you want to store Stable Diffusion models and start downloading them (it will take a while to download about 17GB of models).
 4. Create a new project, add a prompt to your project and start generating!
 
 ## Usage
 
-You can change generation options before you start generation next image (or next two images): 
+### Projects & Prompts
 
-https://user-images.githubusercontent.com/78038/220040145-4978aca9-9685-4fd7-bc7f-e899aa088e4a.mp4
+> A project is a way to organise prompts. A prompt can contain any number of generated images with parameters that can be changed per each image gneeration.
 
-<br />
-<br />
+https://user-images.githubusercontent.com/78038/221611222-2a77425a-6538-4312-8306-05338b519e1a.mov
 
-> This section is a work in progress.
+## Lock Seed To Variate
+
+> Locking a seed and changing other parameters allows to generate similar image by content and different by styles using various parameters controlling the model (like strength, steps, and method). 
+
+https://user-images.githubusercontent.com/78038/221612812-5d7f9b33-e2bb-4870-bb04-fba5e206b46f.mp4
+
+## Monitor Image Queue
+
+> Imags queue shows number of images currently in the queue (waiting to be processed or generating right now). Tapping on each image in the queue focuses on the image.
+
+<img src="https://user-images.githubusercontent.com/78038/221611689-9a566006-ff92-484a-aafb-bf6bf7a96e5d.png" width="530" />
 
 ## Next Steps
 
-- [ ] Automatic xFormers installation
 - [ ] Infinite upscaling via tiled upscaling
-- [ ] Better and more useful variations
 - [ ] Painting canvas
-- [ ] Training support
-- [ ] macOS support
+- [ ] Fine-tuning support
+- [ ] Image to image support
 
 ## Contributors
 
