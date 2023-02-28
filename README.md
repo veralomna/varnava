@@ -49,13 +49,13 @@ The following setups have been tested so far:
 
 > A project is a way to organise prompts. A prompt can contain any number of generated images with parameters that can be changed per each image gneeration.
 
-https://user-images.githubusercontent.com/78038/221611222-2a77425a-6538-4312-8306-05338b519e1a.mov
+https://user-images.githubusercontent.com/78038/221773977-3a6f7f5c-7072-49f2-8916-f30e87ec78d3.mp4
 
 ## Lock Seed To Variate
 
 > Locking a seed and changing other parameters allows to generate similar image by content and different by styles using various parameters controlling the model (like strength, steps, and method). 
 
-https://user-images.githubusercontent.com/78038/221612812-5d7f9b33-e2bb-4870-bb04-fba5e206b46f.mp4
+https://user-images.githubusercontent.com/78038/221774536-99b9b8bd-2b29-4538-9ae1-4aaf559a92f2.mp4
 
 ## Monitor Image Queue
 
