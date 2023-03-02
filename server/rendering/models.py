@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 import os
 import asyncio
+from sys import platform
 from multiprocessing import Process
 from threading import Thread
 from time import sleep
@@ -8,10 +9,10 @@ from huggingface_hub.hf_api import HfApi
 from huggingface_hub._snapshot_download import snapshot_download
 from huggingface_hub.file_download import repo_folder_name
 from mashumaro import DataClassDictMixin
-from lib.channel import Channel
+from diffusers.pipelines.pipeline_utils import variant_compatible_siblings
 
 @dataclass
-class RemoteResource(DataClassDictMixin):
+class RemoteModel(DataClassDictMixin):
     name : str
     path : str
     revision : str | None = None
@@ -19,11 +20,15 @@ class RemoteResource(DataClassDictMixin):
     downloaded_file_bytes : int = 0 # Current number of bytes on local device
     total_file_bytes : int = 0 # Total number of bytes to be downloaded from remote
 
-class RemoteResourceManager:
+class ModelManager:
+
+    @property
+    def resources(self):
+        return [self.preview_model, self.upscale_model]
     
-    def __init__(self, models_url : str, channel : Channel):
+    def __init__(self, models_url : str, download_callback = None):
         # Storing channel to send quick updates
-        self.channel = channel
+        self.download_callback = download_callback
 
         # Models location URL
         self.models_url = models_url
@@ -34,14 +39,34 @@ class RemoteResourceManager:
         # HF models information
         self.models_info = {}
 
+        # Preview model information
+        self.preview_model = RemoteModel(
+            name="Preview",
+            path= "stabilityai/stable-diffusion-2-1" if platform == "win32" else "stabilityai/stable-diffusion-2-1-base",
+            revision="fp16"
+        )
+
+        self.upscale_model = RemoteModel(
+            name="Upscale",
+            path="stabilityai/stable-diffusion-x4-upscaler",
+            revision="fp16"
+        )
+        
+        # TODO: implement preview model selection from HuggingFace hub.
+        # models = self.api.list_models(
+        #     limit=3,
+        #     sort="downloads",
+        #     direction=-1,
+        #     filter=ModelFilter(
+        #         task="text-to-image",
+        #         library="diffusers",
+        #     ),
+        #     cardData=False,
+        #     full=True,
+        # )
+
         # Downloading thread
         self.download_process : Process | None = None
-
-        # All models that need to be downloaded
-        self.resources = [
-            RemoteResource(name="Preview Model", path="stabilityai/stable-diffusion-2-1", revision="fp16"),
-            RemoteResource(name="Upscale Model", path="stabilityai/stable-diffusion-x4-upscaler", revision="fp16"),
-        ]
 
         # Current resource being downloaded
         self.downloading_path : str | None = None
@@ -68,13 +93,15 @@ class RemoteResourceManager:
             self.models_info[resource.path] = repo_info
 
             total_file_bytes = 0
-
+            
             for file in repo_info.siblings:
+                if file.rfilename.endswith("ckpt"):
+                    continue
+
                 if file.lfs is not None:
                     total_file_bytes += file.lfs.get("size") or 0
                 elif file.size is not None:
                     total_file_bytes += file.size
-                
 
             self.resources[index].total_file_bytes = total_file_bytes
 
@@ -93,6 +120,9 @@ class RemoteResourceManager:
             downloaded_file_bytes = 0
             
             for file in repo_info.siblings:
+                if file.rfilename.endswith("ckpt"):
+                    continue
+
                 file_url = os.path.join(base_url, file.rfilename)
 
                 if os.path.exists(file_url):
@@ -105,7 +135,7 @@ class RemoteResourceManager:
         if self.download_process is not None:
             return
         
-        self.download_process = Process(target=self.download)
+        self.download_process = Thread(target=self.download)
         self.download_process.start()
 
         loop = asyncio.get_event_loop()
@@ -117,39 +147,41 @@ class RemoteResourceManager:
 
         self.download_process = None
 
-        self.channel.send("resources.update", {})
-
     def remove_downloads(self):
         self.stop_downloading()
-        
 
     async def fetch_resources_local_information_periodically(self):
         while True:
             await asyncio.sleep(2)
 
-            if self.is_downloading == False:
-                break
-
             self.fetch_resources_local_information()
             
-            self.channel.send("resources.update", {})
+            if self.download_callback is not None:
+                self.download_callback()
+
+            if self.is_downloading == False:
+                break
         
     def download(self):
+        print("[RSM] Starting model downloads")
+
         for index, resource in enumerate(self.resources):
             try:
+                print("[RSM] Downloading", resource.path)
+
                 self.downloading_path = resource.path
 
-                snapshot_download(resource.path,
-                                revision=resource.revision,
-                                resume_download=True,
-                                cache_dir=self.models_url,
-                                max_workers=1)
+                snapshot_download(
+                    resource.path,
+                    revision=resource.revision,
+                    resume_download=True,
+                    cache_dir=self.models_url,
+                    max_workers=1,
+                    ignore_patterns=["*.ckpt"]
+                )
+                
             except:
                 pass
 
         self.stop_downloading()
 
-
-if __name__ == "__main__":
-    manager = RemoteResourceManager(models_url="D:/Neural/varnava/server/data/models")
-    print(manager.resources)

@@ -7,24 +7,26 @@ resources = Blueprint("resources", url_prefix="/resources")
 
 @resources.route("/")
 async def get_resources_status(request):
-    raw_resources = Context.instance().resource_manager.resources
+    resource_manager = Context.instance().generator.models
+
+    raw_resources = resource_manager.resources
 
     resources = []
-
+    
     for raw_resource in raw_resources:
         resources.append(raw_resource.to_dict())
-
+    
     return json({
         "resources" : resources,
-        "isDownloading" : Context.instance().resource_manager.is_downloading,
-        "downloadingPath" : Context.instance().resource_manager.downloading_path,
+        "isDownloading" : resource_manager.is_downloading,
+        "downloadingPath" : resource_manager.downloading_path,
         "dataPath" : Context.instance().url_for_data_dir,
         "isDataPathDefault" : Context.instance().url_for_default_data_dir == Context.instance().url_for_data_dir
     })
 
 @resources.route("/start_downloading")
 async def start_downloading(request):
-    Context.instance().resource_manager.start_downloading()
+    Context.instance().generator.models.start_downloading()
 
     return json({
         "status" : "ok"
@@ -32,7 +34,7 @@ async def start_downloading(request):
 
 @resources.route("/stop_downloading")
 async def stop_downloading(request):
-    Context.instance().resource_manager.stop_downloading()
+    Context.instance().generator.models.stop_downloading()
 
     return json({
         "status" : "ok"
@@ -40,7 +42,7 @@ async def stop_downloading(request):
 
 @resources.route("/remove_downloads")
 async def remove_downloads(request):
-    Context.instance().resource_manager.remove_downloads()
+    Context.instance().generator.models.remove_downloads()
 
     return json({
         "status" : "ok"

@@ -1,10 +1,7 @@
-import datetime
 import os
 import json
 from dataclasses import dataclass
-from peewee import SqliteDatabase
-from rendering.generator import ImageGenerator, ImageGeneratorTaskType
-from rendering.resource_manager import RemoteResourceManager
+from rendering.generator import ImageGenerator
 from db.models import db, Project, Prompt, Output
 from lib.singleton import Singleton
 from lib.channel import Channel
@@ -31,6 +28,10 @@ class Context(object):
     def url_for_data_dir(self, url):
         self.config.url_for_data = url
         self.write_config()
+
+        self.generator.models_url = self.url_for_models_dir
+        self.generator.models.models_url = self.url_for_models_dir
+        self.generator.models.fetch_resources_local_information()
 
     # Path inside local application data directory for storing configuration and database
 
@@ -83,17 +84,17 @@ class Context(object):
 
         query = Output.delete().where(Output.progress < 1.0)
         query.execute()
+        
+        self.channel = Channel()
 
         print("[SRV] Initialising generator")
 
-        self.generator = ImageGenerator(models_url=self.url_for_models_dir)
+        self.generator = ImageGenerator(
+            models_url=self.url_for_models_dir, 
+            models_download_callback=lambda: self.channel.send("resources.update", {})
+        )
+
         self.generator.start()
-
-        print("[SRV] Starting resources manager")
-
-        self.channel = Channel()
-        self.resource_manager = RemoteResourceManager(models_url=self.url_for_models_dir, 
-                                                      channel=self.channel)   
 
         print("[SRV] Ready")
 

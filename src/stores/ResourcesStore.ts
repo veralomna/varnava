@@ -3,8 +3,8 @@ import { computed } from "vue"
 import Store from "./Store"
 
 export enum RemoteResourceKind {
-    preview = "Preview Model",
-    upscale = "Upscale Model"
+    preview = "Preview",
+    upscale = "Upscale"
 }
 
 export enum DataPathUpdateStatus {

@@ -12,7 +12,7 @@ from diffusers import StableDiffusionUpscalePipeline, StableDiffusionPipeline, D
 from mashumaro import DataClassDictMixin
 from .approximation import ApproximateDecoder
 from PIL import Image
-from torchvision import transforms
+from .models import ModelManager
 
 @unique
 class ImageGeneratorTaskType(str, Enum):
@@ -60,9 +60,12 @@ class ImageGeneratorTask:
 class ImageGenerator:
     # custom pytorch needs libzwapi.dll, nvToolsExt64_1.dll, libiomp5md.dll
 
-    def __init__(self, models_url : str):
+    def __init__(self, models_url : str, models_download_callback = None):
         # Models location URL
         self.models_url = models_url
+
+        # All models manager
+        self.models = ModelManager(self.models_url, download_callback=models_download_callback)
 
         # Preparing current queue
         self.tasks = SimpleQueue()
@@ -230,9 +233,9 @@ class ImageGenerator:
                 torch.nn.Conv2d.__init__ = __init__
 
             pipe = StableDiffusionPipeline.from_pretrained(
-                "stabilityai/stable-diffusion-2-1",
+                self.models.preview_model.path,
                 torch_dtype=torch.float16 if self.device_name == "cuda" else torch.float32, 
-                revision="fp16",
+                revision=self.models.preview_model.revision,
                 safety_checker=None,
                 cache_dir=self.models_url,
                 local_files_only=True
@@ -240,9 +243,9 @@ class ImageGenerator:
 
         elif settings.type == ImageGeneratorTaskType.upscale:
             pipe = StableDiffusionUpscalePipeline.from_pretrained(
-                "stabilityai/stable-diffusion-x4-upscaler",
+                self.models.upscale_model.path,
                 torch_dtype=torch.float16 if self.device_name == "cuda" else torch.float32, 
-                revision="fp16",
+                revision=self.models.upscale_model.revision,
                 cache_dir=self.models_url,
                 local_files_only=True
             )

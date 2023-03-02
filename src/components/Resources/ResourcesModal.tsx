@@ -217,7 +217,7 @@ export default defineComponent({
             else {
                 if (this.resourcesState.isDownloading === false) {
                     return <Button onClick={this.startDownloading}
-                                    class="ml-auto"
+                                    class="ml-auto text-green-600 border-green-600"
                                     title="Start Downloading" />
                 }
                 else {
@@ -230,6 +230,10 @@ export default defineComponent({
 
         const renderDataPathInfo = () => {
             if (this.status === RemoteResourceStatus.unknown) {
+                return null
+            }
+
+            if (Store.platform === "darwin") {
                 return null
             }
 
