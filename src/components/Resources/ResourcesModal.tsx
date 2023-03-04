@@ -1,10 +1,11 @@
 import { defineComponent, ref } from "vue"
-import { AlertActionCancel, AlertActionOkay, Modal } from "@/utils/vue-modal"
+import { AlertActionOkay, Modal } from "@/utils/vue-modal"
 import { Button } from "@/components/Shared"
 import { RemoteResourceStatus, RemoteResource, resourcesStore, DataPathUpdateStatus } from "@/stores/ResourcesStore"
 import { ArrowTopRightOnSquareIcon } from "@heroicons/vue/24/outline"
 import StatusEntry from "./StatusEntry"
 import Store from "@/stores/Store"
+import Multiselect from "vue-multiselect" 
 
 export default defineComponent({
 
@@ -72,6 +73,10 @@ export default defineComponent({
             event?.preventDefault()
 
             const path = await window.app.showOpenFileDialog()
+
+            if (typeof path === "undefined") {
+                return
+            }
 
             selectedDataPath.value = path
             await resourcesStore.updateDataPath(path)
@@ -193,6 +198,7 @@ export default defineComponent({
                 path: "",
                 downloaded_file_bytes: bytes.downloaded_file_bytes,
                 total_file_bytes: bytes.total_file_bytes,
+                revision: ""
             }
 
             return <ul>

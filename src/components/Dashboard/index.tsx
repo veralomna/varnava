@@ -1,10 +1,11 @@
-import { computed, defineComponent, ref, watch } from "vue"
+import { defineComponent, ref, watch } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import { Project, projectStore } from "@/stores/ProjectStore"
 import { useModal } from "@/utils/vue-modal"
 import ProjectEntry from "./ProjectEntry"
 import AddProjectModal from "./AddProjectModal"
 import { RemoteResourceStatus, resourcesStore } from "@/stores/ResourcesStore"
+import Dropdown from "@/components/Shared/Dropdown"
 
 export default defineComponent({
 
@@ -58,12 +59,18 @@ export default defineComponent({
             </li>
         }
 
-        return <ul class="grid grid-cols-3 gap-4 mt-14">  
+        return <div>
+            <Dropdown title="Main Meme" class="mt-16 w-72">
+                <div data-dropdown-selected>hello</div>
+                <div>world</div>
+                <div>memes</div>
+            </Dropdown>
+            <ul class="grid grid-cols-3 gap-4 mt-14">  
             {renderAddProjectEntry()}
             {this.projectsState.projects.map((project : Project) => {
                 return renderProjectEntry(project)
             })}
-        </ul>
+        </ul></div>
     }
 
 })

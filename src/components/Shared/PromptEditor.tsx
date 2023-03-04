@@ -1,6 +1,5 @@
 import { AlertActionOkay, useModal } from "@/utils/vue-modal"
 import { defineComponent, ref, watch } from "vue"
-import SettingsEditor from "./SettingsEditor"
 
 export default defineComponent({
 
