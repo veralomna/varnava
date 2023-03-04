@@ -33,10 +33,10 @@ async def stop_downloading(request):
 
 @resources.route("/list_models")
 async def list_models(request):
-    list = await context.generator.models.fetch_all_compatible_models()
+    models = await context.generator.models.fetch_all_compatible_models()
 
     return json({
-        "models" : list
+        "models" : [model.to_dict() for model in models]
     }) 
 
 @resources.post("/update_preview_model_path")

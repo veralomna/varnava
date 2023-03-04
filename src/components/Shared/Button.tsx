@@ -75,7 +75,7 @@ export default (props : Props, context: { slots: { default: any } }) => {
   }
 
   return <div class={className} {...props}>
-      <span class={isLoading === true ? "invisible" : ""}>{renderContent()}</span>
+      <span class={`${isLoading === true ? "invisible" : ""} drop-shadow-sm flex items-center justify-center`}>{renderContent()}</span>
       {renderLoadingIndicator()}
   </div>
 

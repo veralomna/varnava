@@ -1,8 +1,8 @@
 import { defineComponent, ref } from "vue"
 import { Modal } from "@/utils/vue-modal"
-import { Input, Button, Label } from "@/components/Shared"
-import { Prompt } from "@/stores/PromptStore"
+import { Button } from "@/components/Shared"
 import { projectStore } from "@/stores/ProjectStore"
+import Dropdown, { DropdownItem } from "@/components/Shared/Dropdown"
 
 export default defineComponent({
 
@@ -37,11 +37,8 @@ export default defineComponent({
             props.finish()
         }
 
-        const updateMoveDestinationProject = (event : Event) => {
-            event.preventDefault()
-
-            const target = event.target as HTMLSelectElement
-            selectedMoveDestinationProject.value = target.value
+        const updateMoveDestinationProject = (value) => {
+            selectedMoveDestinationProject.value = value
         }
 
         return {
@@ -64,11 +61,12 @@ export default defineComponent({
                 <div class="mb-4">
                     <h3 class="">Move Prompt</h3>
                     <div class="flex mt-4">
-                        <select onChange={this.updateMoveDestinationProject} class="w-full pl-2 border-r-[10px] border-neutral-500/0 rounded drop-shadow-md bg-gray-700 duration-300 hover:bg-gray-600 focus:bg-gray-600 focus:ring-0 text-white">
+                        <Dropdown onChange={this.updateMoveDestinationProject} title={this.projectState.projectsById[this.selectedMoveDestinationProject].title}>
                             {this.projectState.projects.map(project => {
-                                return <option value={project.id} selected={project.id === this.projectId}>{project.title} {project.id === this.projectId ? "(current)" : ""}</option>
+                                return <DropdownItem isSelected={project.id === this.selectedMoveDestinationProject} value={project.id} title={project.title} />
                             })}
-                        </select>
+                        </Dropdown>
+  
                         <Button class="ml-4 shrink-0" 
                                 onClick={this.move}
                                 disabled={this.selectedMoveDestinationProject === this.projectId}

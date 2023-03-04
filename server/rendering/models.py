@@ -108,12 +108,8 @@ class ModelManager:
         # Ignored file extensions inside repositories
         self.ignored_patterns = ["*.ckpt", "*.safetensors"]
 
-        def fetch_all_information():
-            self.fetch_resources_remote_information()
-            self.fetch_resources_local_information()
-        
-        fetch_thread = Thread(target=fetch_all_information)
-        fetch_thread.run()
+        self.fetch_resources_remote_information()
+        self.fetch_resources_local_information()
 
     # Updating state of the manager
 
@@ -140,7 +136,7 @@ class ModelManager:
     # Fetching information about models and revisions from the hub
   
     async def fetch_all_compatible_models(self):
-        models = self.api.list_models(
+        raw_models = self.api.list_models(
             limit=100,
             sort="downloads",
             direction=-1,
@@ -148,11 +144,22 @@ class ModelManager:
                 task="text-to-image",
                 library="diffusers",
             ),
-            cardData=False,
-            full=False,
+            cardData=True,
+            full=True,
         )
 
-        return [model.modelId for model in models]
+        models = []
+
+        for model in raw_models:
+            models.append(RemoteModel(
+                name=model.modelId,
+                path=model.modelId,
+                revision=None,
+                downloaded_file_bytes=0,
+                total_file_bytes=0
+            ))
+
+        return models
 
     async def fetch_model_revisions(self, id : str):
         try:
@@ -171,45 +178,50 @@ class ModelManager:
                                            files_metadata=True)
             
             self.models_info[resource.path] = repo_info
-
-            total_file_bytes = 0
-            
-            for file in repo_info.siblings:
-                if any(fnmatch(file.rfilename, pattern) for pattern in self.ignored_patterns):
-                    continue
-
-                if file.lfs is not None:
-                    total_file_bytes += file.lfs.get("size") or 0
-                elif file.size is not None:
-                    total_file_bytes += file.size
-
-            self.all_models[index].total_file_bytes = total_file_bytes
+            self.all_models[index].total_file_bytes = self.__get_total_file_bytes(repo_info)
 
     def fetch_resources_local_information(self):
         for index, resource in enumerate(self.all_models):
             repo_info = self.models_info[resource.path]
-            commit_hash = repo_info.sha
+            self.all_models[index].downloaded_file_bytes = self.__get_downloaded_file_bytes(repo_info)
 
-            base_url = os.path.join(
-                self.url_for_models, 
-                repo_folder_name(repo_id=resource.path, repo_type="model"),
-                "snapshots",
-                commit_hash
-            )
-
-            downloaded_file_bytes = 0
+    def __get_total_file_bytes(self, info):
+        total_file_bytes = 0
             
-            for file in repo_info.siblings:
-                if any(fnmatch(file.rfilename, pattern) for pattern in self.ignored_patterns):
-                    continue
+        for file in info.siblings:
+            if any(fnmatch(file.rfilename, pattern) for pattern in self.ignored_patterns):
+                continue
 
-                file_url = os.path.join(base_url, file.rfilename)
+            if file.lfs is not None:
+                total_file_bytes += file.lfs.get("size") or 0
+            elif file.size is not None:
+                total_file_bytes += file.size
 
-                if os.path.exists(file_url):
-                    size = os.path.getsize(file_url)
-                    downloaded_file_bytes += size
+        return total_file_bytes
+    
+    def __get_downloaded_file_bytes(self, info):
+        commit_hash = info.sha
 
-            self.all_models[index].downloaded_file_bytes = downloaded_file_bytes
+        base_url = os.path.join(
+            self.url_for_models, 
+            repo_folder_name(repo_id=info.modelId, repo_type="model"),
+            "snapshots",
+            commit_hash
+        )
+
+        downloaded_file_bytes = 0
+        
+        for file in info.siblings:
+            if any(fnmatch(file.rfilename, pattern) for pattern in self.ignored_patterns):
+                continue
+
+            file_url = os.path.join(base_url, file.rfilename)
+
+            if os.path.exists(file_url):
+                size = os.path.getsize(file_url)
+                downloaded_file_bytes += size
+
+        return downloaded_file_bytes
 
     # Downloading 
 

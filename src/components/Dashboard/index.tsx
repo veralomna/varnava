@@ -5,7 +5,6 @@ import { useModal } from "@/utils/vue-modal"
 import ProjectEntry from "./ProjectEntry"
 import AddProjectModal from "./AddProjectModal"
 import { RemoteResourceStatus, resourcesStore } from "@/stores/ResourcesStore"
-import Dropdown from "@/components/Shared/Dropdown"
 
 export default defineComponent({
 
@@ -54,17 +53,12 @@ export default defineComponent({
         const renderProjectEntry = (project : Project) => {
             const subtitle = `${project.outputsCount} images`
 
-            return <li onClick={() => this.selectProject(project.id)} key={project.id} class="cursor-pointer bg-neutral-800 hover:bg-blue-800 rounded-lg border border-neutral-700">
+            return <li onClick={() => this.selectProject(project.id)} key={project.id} class="cursor-pointer bg-neutral-800 hover:bg-neutral-700 rounded-lg border border-neutral-700">
                 <ProjectEntry title={project.title} subtitle={subtitle} />
             </li>
         }
 
         return <div>
-            <Dropdown title="Main Meme" class="mt-16 w-72">
-                <div data-dropdown-selected>hello</div>
-                <div>world</div>
-                <div>memes</div>
-            </Dropdown>
             <ul class="grid grid-cols-3 gap-4 mt-14">  
             {renderAddProjectEntry()}
             {this.projectsState.projects.map((project : Project) => {

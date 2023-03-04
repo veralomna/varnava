@@ -30,7 +30,7 @@ export interface RemoteResource {
 
 export interface ResourcesState {
     models : RemoteResource[]
-    availableModelPaths : string[]
+    availableModels : RemoteResource[]
     dataPath : string,
     isDownloading : boolean
     isUpdatingModel : boolean
@@ -41,7 +41,7 @@ export class ResourcesStore extends Store<ResourcesState> {
     protected data() : ResourcesState {
         return {
             models : [],
-            availableModelPaths : [],
+            availableModels : [],
             dataPath: "",
             isDownloading : false,
             isUpdatingModel : false 
@@ -93,9 +93,8 @@ export class ResourcesStore extends Store<ResourcesState> {
             this.state.dataPath = result["dataPath"]
             this.state.isDownloading = result["isDownloading"]
 
-            if (this.state.availableModelPaths.length === 0) {
-                this.state.availableModelPaths = [this.state.models[0].path]
-                this.fetchAllModels()
+            if (this.state.availableModels.length === 0) {
+                this.state.availableModels = [this.state.models[0]]
             }
         }
         catch (error) {
@@ -103,17 +102,17 @@ export class ResourcesStore extends Store<ResourcesState> {
         }
     }
 
-    protected async fetchAllModels() {
-        if (this.state.availableModelPaths.length >= 2) {
+    public async fetchAllModels(isForced : boolean = false) {
+        if (this.state.availableModels.length >= 2) {
             return
         }
        
         try {
             const result = await (await this.fetchApi("/resources/list_models")).json()
-            this.state.availableModelPaths = result["models"]
+            this.state.availableModels = result["models"]
         }
         catch (error) {
-            this.state.availableModelPaths = []
+            this.state.availableModels = []
         }
     }
 
