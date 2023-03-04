@@ -1,7 +1,8 @@
-import { defineComponent, ref, computed, PropType } from "vue"
-import { AlertActionCancel, AlertActionOkay, Modal, useModal } from "@/utils/vue-modal"
+import { defineComponent, ref } from "vue"
+import { AlertActionCancel, AlertActionOkay, Modal } from "@/utils/vue-modal"
 import { Button } from "@/components/Shared"
 import { RemoteResourceStatus, RemoteResource, resourcesStore, DataPathUpdateStatus } from "@/stores/ResourcesStore"
+import { ArrowTopRightOnSquareIcon } from "@heroicons/vue/24/outline"
 import StatusEntry from "./StatusEntry"
 import Store from "@/stores/Store"
 
@@ -16,7 +17,10 @@ export default defineComponent({
     },
 
     setup(props) {
-        const currentDataPath = ref(resourcesStore.getState().dataPath)
+        resourcesStore.fetch()
+
+        const selectedModelPath = ref(resourcesStore.getState().models[0].path)
+        const selectedDataPath = ref(resourcesStore.getState().dataPath)
         
         const startDownloading = async (event : Event) => {
             event.preventDefault()
@@ -28,30 +32,10 @@ export default defineComponent({
             resourcesStore.stopDownloading()
         }
 
-        const resetDownloads = async (event : Event) => {
-            event.preventDefault()
-        
-            const result = await props.modal.presentAlert({
-                title: "Remove All Models Data",
-                description: "Are you sure you want to remove all locally stored models data? All data will need to be redownloaded again in order to create images.",
-                actions: [
-                    {
-                        name: "Delete",
-                        type: "destructive"
-                    },
-                    AlertActionCancel
-                ],
-            })
-
-            if (result?.name === "Delete") {
-                resourcesStore.removeDownloads()
-            }
-        }
-
         const confirmDataPath = async (event : MouseEvent) => {
             event?.preventDefault()
 
-            const result = await resourcesStore.updateDataPath(currentDataPath.value)
+            const result = await resourcesStore.updateDataPath(selectedDataPath.value)
 
             switch (result) {
 
@@ -62,7 +46,7 @@ export default defineComponent({
         
                 await props.modal.presentAlert({
                     title: "Cannot find path specified",
-                    description: `Make sure ${currentDataPath.value} exists on your file system.`,
+                    description: `Make sure ${selectedDataPath.value} exists on your file system.`,
                     actions: [
                         AlertActionOkay
                     ],
@@ -73,7 +57,7 @@ export default defineComponent({
             case DataPathUpdateStatus.pathNotDirectory:
                 await props.modal.presentAlert({
                     title: "Specified path is not a directory",
-                    description: `Make sure ${currentDataPath.value} is a directory where the files will be stored.`,
+                    description: `Make sure ${selectedDataPath.value} is a directory where the files will be stored.`,
                     actions: [
                         AlertActionOkay
                     ],
@@ -89,13 +73,33 @@ export default defineComponent({
 
             const path = await window.app.showOpenFileDialog()
 
-            currentDataPath.value = path
+            selectedDataPath.value = path
             await resourcesStore.updateDataPath(path)
         }
 
         const updateCurrentDataPath = (event : InputEvent) => {
             const target = event.target as HTMLInputElement
-            currentDataPath.value = target.value
+            selectedDataPath.value = target.value
+        }
+
+        const updateSelectedModelPath = (event : Event) => {
+            event.preventDefault()
+
+            const target = event.target as HTMLSelectElement
+            selectedModelPath.value = target.value
+        }
+
+        const confirmSelectedModelPath = async () => {
+            await resourcesStore.updatePreviewModel(selectedModelPath.value)
+        }
+
+        const openModelLink = (event : Event) => {
+            if (Store.isInApp === true) {
+                window.app.open(`http://huggingface.co/${selectedModelPath.value}`)
+            }
+            else {
+                window.open(`http://huggingface.co/${selectedModelPath.value}`, "_blank")
+            }
         }
 
         const close = async (event : Event) => {
@@ -103,18 +107,19 @@ export default defineComponent({
             props.finish(null)
         }
 
-        resourcesStore.fetch()
-        
         return {
             resourcesState : resourcesStore.getState(),
             status : resourcesStore.status,
-            currentDataPath,
+            currentDataPath: selectedDataPath,
+            selectedModelPath,
+            updateSelectedModelPath,
+            confirmSelectedModelPath,
             browseDataPath,
             updateCurrentDataPath,
             startDownloading,
             stopDownloading,
-            resetDownloads,
             confirmDataPath,
+            openModelLink,
             close
         }
     },
@@ -177,7 +182,7 @@ export default defineComponent({
                 return null
             }
             
-            const bytes = this.resourcesState.resources.reduce((result, next) => {
+            const bytes = this.resourcesState.models.reduce((result, next) => {
                 result.downloaded_file_bytes += next.downloaded_file_bytes
                 result.total_file_bytes += next.total_file_bytes
                 return result
@@ -188,11 +193,10 @@ export default defineComponent({
                 path: "",
                 downloaded_file_bytes: bytes.downloaded_file_bytes,
                 total_file_bytes: bytes.total_file_bytes,
-                is_required: true,
             }
 
             return <ul>
-                {this.resourcesState.resources.map(resource => {
+                {this.resourcesState.models.map(resource => {
                     return <li>
                         {renderResourceInfo(resource)}
                     </li> 
@@ -209,10 +213,7 @@ export default defineComponent({
             }
 
             if (this.status === RemoteResourceStatus.ready) {
-                return <Button onClick={this.resetDownloads}
-                                class="ml-auto"
-                                destructive={true}
-                                title="Remove All Models Data" />
+                return null
             }
             else {
                 if (this.resourcesState.isDownloading === false) {
@@ -235,16 +236,6 @@ export default defineComponent({
 
             if (Store.platform === "darwin") {
                 return null
-            }
-
-            const renderDataPathWarning = () => {
-                if (this.resourcesState.isDataPathDefault === false) {
-                    return
-                }
-
-                return <span class="block pt-2 text-red-500">
-                    Warning! Please select a folder where all your models will be stored so they are not stored on the system disk.
-                </span>
             }
 
             const renderDataPathSelector = () => {
@@ -274,15 +265,38 @@ export default defineComponent({
             }
 
             return <div class="pb-4 border-b border-neutral-700 mb-2">
-                <h3 class="opacity-50 pb-2">Data Storage Location (all models and output images will be stored there):</h3>
+                <h3 class="opacity-50 pb-2">Models And Outputs Storage Location:</h3>
                 {renderDataPathSelector()}
-                {renderDataPathWarning()}
+            </div>
+        }
+
+        const renderModelSelector = () => {
+            return <div class="pb-2 border-b border-neutral-700">
+                 <h3 class="opacity-50 pb-2">Preview Model Configuration</h3>
+                 <div class="flex gap-4">
+                    <select onChange={this.updateSelectedModelPath} class="w-full text-sm pl-2 border-r-[10px] border-neutral-500/0 rounded drop-shadow-md bg-gray-700 duration-300 hover:bg-gray-600 focus:bg-gray-600 focus:ring-0 text-white">
+                                {this.resourcesState.availableModelPaths.map(id => {
+                                    return <option value={id} selected={this.selectedModelPath === id}>{id} {this.resourcesState.models[0].path === id ? "(current)" : ""}</option>
+                                })}
+                    </select>
+
+                    <Button onClick={this.confirmSelectedModelPath}
+                                isLoading={this.resourcesState.isUpdatingModel}
+                                class="shrink-0"
+                                disabled={this.resourcesState.models[0].path === this.selectedModelPath}
+                                title="Update" />
+                </div>
+                <a onClick={this.openModelLink} class="mt-2 text-xs text-blue-500 hover:text-blue-400" href="#">
+                    Read more about <strong>{this.selectedModelPath}</strong> <ArrowTopRightOnSquareIcon class="inline w-3 h-3 relative bottom-0.5" />
+                </a>
             </div>
         }
  
         return <Modal class="w-3/4" closableWithBackground={true} title="Settings & Resources" close={this.$props.finish}>
             {renderDataPathInfo()}
             
+            {renderModelSelector()}
+
             {renderAllResourcesInfo()}
 
             <div class="flex mt-4 items-center">

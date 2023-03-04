@@ -60,12 +60,9 @@ class ImageGeneratorTask:
 class ImageGenerator:
     # custom pytorch needs libzwapi.dll, nvToolsExt64_1.dll, libiomp5md.dll
 
-    def __init__(self, models_url : str, models_download_callback = None):
-        # Models location URL
-        self.models_url = models_url
-
-        # All models manager
-        self.models = ModelManager(self.models_url, download_callback=models_download_callback)
+    def __init__(self, url_for_root : str, models_download_callback = None):
+        # Models manager
+        self.models = ModelManager(url_for_root, download_callback=models_download_callback)
 
         # Preparing current queue
         self.tasks = SimpleQueue()
@@ -237,7 +234,7 @@ class ImageGenerator:
                 torch_dtype=torch.float16 if self.device_name == "cuda" else torch.float32, 
                 revision=self.models.preview_model.revision,
                 safety_checker=None,
-                cache_dir=self.models_url,
+                cache_dir=self.models.url_for_models,
                 local_files_only=True
             )
 
@@ -246,7 +243,7 @@ class ImageGenerator:
                 self.models.upscale_model.path,
                 torch_dtype=torch.float16 if self.device_name == "cuda" else torch.float32, 
                 revision=self.models.upscale_model.revision,
-                cache_dir=self.models_url,
+                cache_dir=self.models.url_for_models,
                 local_files_only=True
             )
 

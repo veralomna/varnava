@@ -23,38 +23,38 @@ export enum RemoteResourceStatus {
 export interface RemoteResource {
     name : string
     path : string
-    is_required : boolean
+    revision : string
     total_file_bytes : number
     downloaded_file_bytes : number
 }
 
 export interface ResourcesState {
-    resources : RemoteResource[]
-    isDownloading : boolean
-    downloadingPath : string | null
+    models : RemoteResource[]
+    availableModelPaths : string[]
     dataPath : string,
-    isDataPathDefault : boolean
+    isDownloading : boolean
+    isUpdatingModel : boolean
 }
 
 export class ResourcesStore extends Store<ResourcesState> {
 
     protected data() : ResourcesState {
         return {
-            resources : [],
+            models : [],
+            availableModelPaths : [],
+            dataPath: "",
             isDownloading : false,
-            downloadingPath : null,
-            dataPath : "",
-            isDataPathDefault : false
+            isUpdatingModel : false 
         }
     }
 
     public get status() {
         return computed(() => {
-            if (this.state.resources.length === 0) {
+            if (this.state.models.length === 0) {
                 return RemoteResourceStatus.unknown
             }
 
-            if (this.state.resources.filter(resource => resource.downloaded_file_bytes < resource.total_file_bytes ).length > 0) {
+            if (this.state.models.filter(model => model.downloaded_file_bytes < model.total_file_bytes ).length > 0) {
                 // Still need to download resources
                 if (this.state.isDownloading === false) {
                     return RemoteResourceStatus.needToLoad
@@ -77,9 +77,9 @@ export class ResourcesStore extends Store<ResourcesState> {
     }
 
     public isResourceReady(kind : RemoteResourceKind) {
-        const resource = this.state.resources.filter(resource => resource.name === kind)[0]
+        const model = this.state.models.filter(model => model.name === kind)[0]
 
-        if (resource.downloaded_file_bytes < resource.total_file_bytes) {
+        if (model.downloaded_file_bytes < model.total_file_bytes) {
             return false
         }
 
@@ -89,15 +89,54 @@ export class ResourcesStore extends Store<ResourcesState> {
     public async fetch() {
         try {
             const result = await (await this.fetchApi("/resources")).json()
-            this.state.resources = result["resources"]
-            this.state.isDownloading = result["isDownloading"]
-            this.state.downloadingPath = result["downloadingPath"]
-            this.state.isDataPathDefault = result["isDataPathDefault"]
+            this.state.models = result["models"]
             this.state.dataPath = result["dataPath"]
+            this.state.isDownloading = result["isDownloading"]
+
+            if (this.state.availableModelPaths.length === 0) {
+                this.state.availableModelPaths = [this.state.models[0].path]
+                this.fetchAllModels()
+            }
         }
         catch (error) {
-            this.state.resources = []
+            this.state.models = []
         }
+    }
+
+    protected async fetchAllModels() {
+        if (this.state.availableModelPaths.length >= 2) {
+            return
+        }
+       
+        try {
+            const result = await (await this.fetchApi("/resources/list_models")).json()
+            this.state.availableModelPaths = result["models"]
+        }
+        catch (error) {
+            this.state.availableModelPaths = []
+        }
+    }
+
+    public async updatePreviewModel(path : String): Promise<Boolean> {
+        this.state.isUpdatingModel = true
+
+        try {
+            const result = await (await this.fetchApi("/resources/update_preview_model_path", {
+                method: "POST",
+                body: JSON.stringify({
+                    path
+                })
+            })).json()
+
+            this.state.isUpdatingModel = false
+
+            return result["status"] === "ok"
+        }
+        catch (error) {
+            this.state.isUpdatingModel = false
+            return false
+        }
+
     }
 
     public async startDownloading() {

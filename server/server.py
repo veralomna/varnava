@@ -2,7 +2,7 @@ import os
 from sanic import Sanic
 from sanic_ext import Extend
 
-from context import Context
+from context import context
 
 from resources import resources
 from projects import projects, project
@@ -27,8 +27,6 @@ app.blueprint(updates)
 Extend(app)
 
 def run():
-    Context.instance()
-
     port = int(os.environ.get("VARNAVA_SERVER_PORT", 23804))
 
     app.run(

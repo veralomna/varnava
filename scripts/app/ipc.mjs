@@ -8,6 +8,10 @@ contextBridge.exposeInMainWorld("app", {
 
     /* Window controls */
 
+    open: async (link) => {
+        return await ipcRenderer.invoke("open", link)
+    },
+
     send: (action) => {
         ipcRenderer.send("control", action)
     },

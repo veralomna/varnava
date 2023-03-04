@@ -1,5 +1,5 @@
 import path from "path"
-import { app, BrowserWindow, ipcMain, dialog, Menu } from "electron"
+import { app, BrowserWindow, ipcMain, dialog, Menu, shell } from "electron"
 import { fileURLToPath } from "url"
 import Store from "electron-store"
 import { BackendServer } from "./backend.mjs"
@@ -168,6 +168,10 @@ const runApp = async () => {
 
   ipcMain.handle("fetchPrerequisitesStatus", async () => {
     return server.state
+  })
+
+  ipcMain.handle("open", async (channel, link) => {
+    shell.openExternal(link)
   })
 
   /* Global app messages */

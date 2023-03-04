@@ -3,7 +3,7 @@ from sanic import Blueprint
 from uuid import uuid4, UUID
 from playhouse.shortcuts import model_to_dict
 from db.models import Project, Prompt, Output
-from context import Context
+from context import context
 from rendering.generator import ImageGeneratorTask, ImageGeneratorOutput, ImageGeneratorTaskSettings, ImageGeneratorTaskType
 from lib.json import json
 
@@ -166,7 +166,7 @@ async def add_output(request, project_id: UUID, prompt_id: UUID):
             output.progress = progress
             output.save()
 
-            Context.instance().channel.send("output.updated", model_to_dict(output))
+            context.channel.send("output.updated", model_to_dict(output))
 
     # Scheduling generator task to the backend generator
     task = ImageGeneratorTask(
@@ -182,13 +182,13 @@ async def add_output(request, project_id: UUID, prompt_id: UUID):
     if "parent_id" in input:
         parent_id = input["parent_id"]
         parent = Output.get_or_none(id = parent_id)
-        task.settings.initial_url = Context.instance().url_for_output(parent.url)
+        task.settings.initial_url = context.url_for_output(parent.url)
 
     # Adding outputs according to the supplied size
     for i in range(size):
         id = uuid4()
         relative_url = str(prompt.id) + "/" + str(id) + ".jpg"
-        absolute_url = Context.instance().url_for_output(relative_url)
+        absolute_url = context.url_for_output(relative_url)
 
         # Ensuring the output directory exists
         os.makedirs(os.path.dirname(absolute_url), exist_ok=True)
@@ -205,14 +205,14 @@ async def add_output(request, project_id: UUID, prompt_id: UUID):
 
         output.save(force_insert=True)
 
-        Context.instance().channel.send("output.created", model_to_dict(output))
+        context.channel.send("output.created", model_to_dict(output))
 
         task.outputs.append(ImageGeneratorOutput(
             id=id,
             url=absolute_url
         ))
 
-    Context.instance().generator.add_task(task)
+    context.generator.add_task(task)
 
     return json({
         "prompt" : model_to_dict(prompt, recurse=False)

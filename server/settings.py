@@ -1,6 +1,6 @@
 from sanic import Blueprint
 from lib.json import json
-from context import Context
+from context import context
 
 settings = Blueprint("settings")
 
@@ -9,8 +9,8 @@ settings = Blueprint("settings")
 async def list_prompts_settings(request):
     return json({
         "constants" : {
-            "base_dimension" : Context.instance().generator.base_dimension,
-            "upscaled_dimension" : Context.instance().generator.upscaled_dimension,
+            "base_dimension" : context.generator.base_dimension,
+            "upscaled_dimension" : context.generator.upscaled_dimension,
         },
         "settings" : [
             {
