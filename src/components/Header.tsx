@@ -88,7 +88,7 @@ export default defineComponent({
         return <header style="-webkit-app-region: drag;" class="backdrop-blur-md bg-neutral-900/[.9] w-full pb-2 px-6 fixed z-[10000] pt-2 flex box-border select-none">
             <div class= {Store.platform === "darwin" ? "w-full" : ""} />
             <h1 class="font-semibold text-xl uppercase font-display tracking-wide">
-                <a style="-webkit-app-region: no-drag;" class="transition duration-500 hover:scale-105 hover:opacity-75" onClick={this.openHome} href="#">Varnava</a>
+                <a style="-webkit-app-region: no-drag;" class="transition drop-shadow-md hover:drop-shadow-2xl duration-500 hover:scale-105 hover:opacity-75" onClick={this.openHome} href="#">Varnava</a>
             </h1>
             <div class={`flex ${Store.platform === "darwin" ? "w-full" : "ml-auto"}`}>
                 {renderQueueStatus()}

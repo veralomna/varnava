@@ -41,7 +41,7 @@ async def list_prompts_settings(request):
                 "min" : 0.0,
                 "max" : 1.0,
                 "step" : 0.01,
-                "default" : 0.6
+                "default" : 0.4
             },
             {
                 "name" : "steps",

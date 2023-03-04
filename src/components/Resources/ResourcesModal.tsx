@@ -1,10 +1,11 @@
 import { defineComponent, ref } from "vue"
-import { AlertActionCancel, AlertActionOkay, Modal } from "@/utils/vue-modal"
+import { AlertActionOkay, Modal } from "@/utils/vue-modal"
 import { Button } from "@/components/Shared"
 import { RemoteResourceStatus, RemoteResource, resourcesStore, DataPathUpdateStatus } from "@/stores/ResourcesStore"
 import { ArrowTopRightOnSquareIcon } from "@heroicons/vue/24/outline"
 import StatusEntry from "./StatusEntry"
 import Store from "@/stores/Store"
+import Dropdown, { DropdownItem } from "@/components/Shared/Dropdown"
 
 export default defineComponent({
 
@@ -18,6 +19,7 @@ export default defineComponent({
 
     setup(props) {
         resourcesStore.fetch()
+        resourcesStore.fetchAllModels()
 
         const selectedModelPath = ref(resourcesStore.getState().models[0].path)
         const selectedDataPath = ref(resourcesStore.getState().dataPath)
@@ -73,6 +75,10 @@ export default defineComponent({
 
             const path = await window.app.showOpenFileDialog()
 
+            if (typeof path === "undefined") {
+                return
+            }
+
             selectedDataPath.value = path
             await resourcesStore.updateDataPath(path)
         }
@@ -82,11 +88,8 @@ export default defineComponent({
             selectedDataPath.value = target.value
         }
 
-        const updateSelectedModelPath = (event : Event) => {
-            event.preventDefault()
-
-            const target = event.target as HTMLSelectElement
-            selectedModelPath.value = target.value
+        const updateSelectedModelPath = (value : string) => {
+            selectedModelPath.value = value
         }
 
         const confirmSelectedModelPath = async () => {
@@ -193,6 +196,7 @@ export default defineComponent({
                 path: "",
                 downloaded_file_bytes: bytes.downloaded_file_bytes,
                 total_file_bytes: bytes.total_file_bytes,
+                revision: ""
             }
 
             return <ul>
@@ -271,14 +275,27 @@ export default defineComponent({
         }
 
         const renderModelSelector = () => {
+            const currentModelPath = this.resourcesState.models[0].path
+
             return <div class="pb-2 border-b border-neutral-700">
                  <h3 class="opacity-50 pb-2">Preview Model Configuration</h3>
                  <div class="flex gap-4">
-                    <select onChange={this.updateSelectedModelPath} class="w-full text-sm pl-2 border-r-[10px] border-neutral-500/0 rounded drop-shadow-md bg-gray-700 duration-300 hover:bg-gray-600 focus:bg-gray-600 focus:ring-0 text-white">
-                                {this.resourcesState.availableModelPaths.map(id => {
-                                    return <option value={id} selected={this.selectedModelPath === id}>{id} {this.resourcesState.models[0].path === id ? "(current)" : ""}</option>
-                                })}
-                    </select>
+                    <Dropdown class="z-[100]" onChange={this.updateSelectedModelPath} title={this.selectedModelPath}>
+                        <DropdownItem value={currentModelPath}>
+                            <div class="px-3 py-2.5 flex items-center justify-between font-bold">
+                                <span>{currentModelPath}</span>
+                                <span class="uppercase text-3xs font-bold px-1 border border-white rounded opacity-50">Current</span>
+                            </div>
+                        </DropdownItem>
+                        
+                        {this.resourcesState.availableModels.filter(model => currentModelPath !== model.path).map(model => {
+                            return <DropdownItem value={model.path}>
+                                <div class="px-3 py-2.5 flex items-center justify-between">
+                                    <span>{model.path}</span>
+                                </div>
+                            </DropdownItem>
+                        })}
+                    </Dropdown>
 
                     <Button onClick={this.confirmSelectedModelPath}
                                 isLoading={this.resourcesState.isUpdatingModel}

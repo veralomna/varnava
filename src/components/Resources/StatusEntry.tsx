@@ -44,7 +44,7 @@ export default defineComponent({
                     break
 
                 case RemoteResourceStatus.ready:
-                    color = "bg-teal-500"
+                    color = "bg-teal-400"
                     break
 
             }

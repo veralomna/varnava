@@ -14,7 +14,7 @@ export default (props : Props, context: { slots: { default: any } }) => {
   const isLoading = typeof props.isLoading !== "undefined" ? props.isLoading : false
   const isDisabled = typeof props.disabled !== "undefined" ? props.disabled : false
 
-  let className = "relative leading-none tracking-tight font-semibold bg-transparent border px-3 rounded transition-all"
+  let className = "select-none relative leading-none tracking-tight font-semibold bg-transparent border px-3 rounded transition-all"
 
   if (props.destructive == true) {
     className += " " + "text-red-600 border-red-600"
@@ -75,7 +75,7 @@ export default (props : Props, context: { slots: { default: any } }) => {
   }
 
   return <div class={className} {...props}>
-      <span class={isLoading === true ? "invisible" : ""}>{renderContent()}</span>
+      <span class={`${isLoading === true ? "invisible" : ""} drop-shadow-sm flex items-center justify-center`}>{renderContent()}</span>
       {renderLoadingIndicator()}
   </div>
 

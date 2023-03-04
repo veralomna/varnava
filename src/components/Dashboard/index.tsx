@@ -1,4 +1,4 @@
-import { computed, defineComponent, ref, watch } from "vue"
+import { defineComponent, ref, watch } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import { Project, projectStore } from "@/stores/ProjectStore"
 import { useModal } from "@/utils/vue-modal"
@@ -53,17 +53,18 @@ export default defineComponent({
         const renderProjectEntry = (project : Project) => {
             const subtitle = `${project.outputsCount} images`
 
-            return <li onClick={() => this.selectProject(project.id)} key={project.id} class="cursor-pointer bg-neutral-800 hover:bg-blue-800 rounded-lg border border-neutral-700">
+            return <li onClick={() => this.selectProject(project.id)} key={project.id} class="cursor-pointer bg-neutral-800 hover:bg-neutral-700 rounded-lg border border-neutral-700">
                 <ProjectEntry title={project.title} subtitle={subtitle} />
             </li>
         }
 
-        return <ul class="grid grid-cols-3 gap-4 mt-14">  
+        return <div>
+            <ul class="grid grid-cols-3 gap-4 mt-14">  
             {renderAddProjectEntry()}
             {this.projectsState.projects.map((project : Project) => {
                 return renderProjectEntry(project)
             })}
-        </ul>
+        </ul></div>
     }
 
 })
