@@ -104,8 +104,8 @@ export default defineComponent({
                 return null
             }
 
-            return <div data-dropdown-contents={true} class="absolute left-0 right-0 max-h-64 overflow-scroll shadow-2xl" style="overflow: overlay;">
-                <ul class="bg-gray-800 rounded-bl rounded-br divide-y divide-gray-500/10 border-t border-gray-500/10 text-sm truncate">
+            return <div data-dropdown-contents={true} class="absolute left-0 right-0 max-h-64 overflow-scroll shadow-2xl border-t-2 border-gray-500/20" style="overflow: overlay;">
+                <ul class="bg-gray-800 rounded-bl rounded-br divide-y divide-gray-500/10 text-sm truncate">
                     {items.map(item => {
                         return <li onClick={() => this.select(item)} class="hover:bg-gray-700/50">
                             {item}

@@ -56,7 +56,7 @@ export default defineComponent({
                 return null
             }
 
-            return <div style="-webkit-app-region: no-drag;" class="flex gap-2 ml-6 text-2xl">
+            return <div style="-webkit-app-region: no-drag;" class="flex gap-2 ml-6 text-2xl z-[100000]">
                 <button onClick={this.minimise} class="cursor-default hover:bg-gray-800 hover:text-white text-gray-500 w-7 h-7 flex items-center justify-center">
                     <span class="relative bottom-[0px]">&ndash;</span>
                 </button>

@@ -24,7 +24,7 @@ class RemoteModel(DataClassDictMixin):
 @dataclass 
 class ModelsConfiguration(DataClassDictMixin):
     url_for_data : str
-   
+
     preview_model : RemoteModel = RemoteModel(
         name="Preview",
         path= "stabilityai/stable-diffusion-2-1" if platform == "win32" else "stabilityai/stable-diffusion-2-1-base",
@@ -149,14 +149,14 @@ class ModelManager:
         )
 
         models = []
-
+        
         for model in raw_models:
             models.append(RemoteModel(
-                name=model.modelId,
-                path=model.modelId,
+                name=model.modelId or "",
+                path=model.modelId or "",
                 revision=None,
-                downloaded_file_bytes=0,
-                total_file_bytes=0
+                downloaded_file_bytes=1,
+                total_file_bytes=1
             ))
 
         return models
@@ -229,7 +229,7 @@ class ModelManager:
         if self.download_process is not None:
             return
         
-        def download(self):
+        def download():
             for index, resource in enumerate(self.all_models):
                 try:
                     snapshot_download(
@@ -246,7 +246,7 @@ class ModelManager:
 
             self.stop_downloading()
         
-        async def fetch_resources_local_information_periodically(self):
+        async def fetch_resources_local_information_periodically():
             while True:
                 await asyncio.sleep(2)
 
@@ -274,8 +274,6 @@ class ModelManager:
  
     def write_config(self):
         config = self.__config.to_dict()
-
-        print(f"Config was updated to {config}")
 
         config_file = open(self.url_for_config, "w+")
         json.dump(config, config_file)
