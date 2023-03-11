@@ -33,7 +33,7 @@ export class VueModalStore {
                 },
                 modal: $this,
             })
-
+            
             this.zIndex += 1
 
             const container = document.createElement("div") 

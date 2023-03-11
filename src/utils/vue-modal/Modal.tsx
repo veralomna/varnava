@@ -42,16 +42,20 @@ export default defineComponent({
         const closeModal = (event : MouseEvent) => {
             event.preventDefault()
 
-            const target = event.target
+            const target = event.target as HTMLElement
 
             if (target === null) {
+                return
+            }
+            
+            if (target.closest("[data-modal-index]") === null) {
                 return
             }
 
             if ((target as Element).getAttribute("data-closable")) {
                 props.close()
                 return
-            }
+            } 
 
             if ((target as Element).getAttribute("data-closable-background") && props.closableWithBackground === true) {
                 props.close()

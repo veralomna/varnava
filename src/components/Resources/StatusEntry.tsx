@@ -70,7 +70,7 @@ export default defineComponent({
                     return this.isDetailed == true ? "Model files are being loaded from remote server." : "Downloading Models"
 
                 case RemoteResourceStatus.ready:
-                    return this.isDetailed == true ? "All model files have been downloaded." : "Models Ready"
+                    return this.isDetailed == true ? "Required model files have been downloaded." : "Models Ready"
 
             }
         }

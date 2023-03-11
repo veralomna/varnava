@@ -37,7 +37,7 @@ export default defineComponent({
         const submit = (event : Event) => {
             if (textarea.value?.value.length === 0) {
                 modal.presentAlert({
-                    title: "Invalid prompt",
+                    title: "Invalid Prompt",
                     description: "Prompt value must not be empty 🤔.",
                     actions: [
                         AlertActionOkay

@@ -1,11 +1,11 @@
 import { defineComponent, ref } from "vue"
-import { AlertActionOkay, Modal } from "@/utils/vue-modal"
+import { AlertActionCancel, AlertActionOkay, Modal } from "@/utils/vue-modal"
 import { Button } from "@/components/Shared"
 import { RemoteResourceStatus, RemoteResource, resourcesStore, DataPathUpdateStatus } from "@/stores/ResourcesStore"
-import { ArrowTopRightOnSquareIcon } from "@heroicons/vue/24/outline"
+import { DocumentPlusIcon, TrashIcon } from "@heroicons/vue/24/outline"
 import StatusEntry from "./StatusEntry"
 import Store from "@/stores/Store"
-import Dropdown, { DropdownItem } from "@/components/Shared/Dropdown"
+import AddModelModal from "./AddModelModal"
 
 export default defineComponent({
 
@@ -19,9 +19,7 @@ export default defineComponent({
 
     setup(props) {
         resourcesStore.fetch()
-        resourcesStore.fetchAllModels()
 
-        const selectedModelPath = ref(resourcesStore.getState().models[0].path)
         const selectedDataPath = ref(resourcesStore.getState().dataPath)
         
         const startDownloading = async (event : Event) => {
@@ -46,18 +44,18 @@ export default defineComponent({
 
             case DataPathUpdateStatus.pathNotFound:
         
-                await props.modal.presentAlert({
+                await props.modal?.presentAlert({
                     title: "Cannot find path specified",
                     description: `Make sure ${selectedDataPath.value} exists on your file system.`,
                     actions: [
                         AlertActionOkay
-                    ],
+                    ]
                 })
 
                 break
 
             case DataPathUpdateStatus.pathNotDirectory:
-                await props.modal.presentAlert({
+                await props.modal?.presentAlert({
                     title: "Specified path is not a directory",
                     description: `Make sure ${selectedDataPath.value} is a directory where the files will be stored.`,
                     actions: [
@@ -88,21 +86,28 @@ export default defineComponent({
             selectedDataPath.value = target.value
         }
 
-        const updateSelectedModelPath = (value : string) => {
-            selectedModelPath.value = value
+        const showAddModelDialogue = () => {
+            props.modal?.present(AddModelModal)
         }
 
-        const confirmSelectedModelPath = async () => {
-            await resourcesStore.updatePreviewModel(selectedModelPath.value)
-        }
+        const deleteModel = async (id : string) => {
+            const result = await props.modal?.presentAlert({
+                title: "Delete Model",
+                description: "Are you sure you want to delete the model? All its files will be removed from disk.",
+                actions: [
+                    {
+                        name: "Delete",
+                        type: "destructive"
+                    },
+                    AlertActionCancel
+                ]
+            })
 
-        const openModelLink = (event : Event) => {
-            if (Store.isInApp === true) {
-                window.app.open(`http://huggingface.co/${selectedModelPath.value}`)
+            if (result?.name !== "Delete") {
+                return 
             }
-            else {
-                window.open(`http://huggingface.co/${selectedModelPath.value}`, "_blank")
-            }
+
+            await resourcesStore.deleteModel(id)
         }
 
         const close = async (event : Event) => {
@@ -114,21 +119,19 @@ export default defineComponent({
             resourcesState : resourcesStore.getState(),
             status : resourcesStore.status,
             currentDataPath: selectedDataPath,
-            selectedModelPath,
-            updateSelectedModelPath,
-            confirmSelectedModelPath,
             browseDataPath,
             updateCurrentDataPath,
             startDownloading,
             stopDownloading,
             confirmDataPath,
-            openModelLink,
+            showAddModelDialogue,
+            deleteModel,
             close
         }
     },
 
     render() {
-        const renderResourceInfo = (resource : RemoteResource) => {
+        const renderResourceInfo = (resource : RemoteResource, isDeletable : boolean = false) => {
             const formatBytes = (x : number) => {
                 const units = ["B", 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
                 
@@ -140,13 +143,13 @@ export default defineComponent({
               
                 return(n.toFixed(n < 10 && l > 0 ? 2 : 2) + units[l])
             }
-            
+
             const colorForProgress = (progress : number): string => {
                 if (progress < 1) {
-                    return "text-yellow-500"
+                    return "bg-yellow-600"
                 }
                 else {
-                    return "text-teal-500"
+                    return "bg-blue-600"
                 }
             }
 
@@ -163,18 +166,17 @@ export default defineComponent({
             const progress = resource.downloaded_file_bytes / resource.total_file_bytes
             const progressPercent = Math.round(progress * 100)
 
-            return <div class="py-4 font-mono text-sm">
-                <div class="flex">
-                    <span>
-                        {resource.name} <span class="text-xs opacity-50">{resource.path}</span>
-                    </span>
-                    <span class={`ml-auto font-medium ${colorForProgress(progress)}`}>
-                        {renderProgressInfo()}
-                    </span>
+            return <div class="pt-2 font-mono text-sm">
+                <div class="flex justify-between">
+                    <span class="text-xs opacity-75">{resource.path}</span>
+                    {isDeletable === true ? <TrashIcon onClick={() => this.deleteModel(resource.path)} class="w-4 h-4 text-red-500 cursor-pointer hover:opacity-75" /> : null}
                 </div>
                 <div class="mt-2">
-                    <div class="relative w-full h-3 bg-neutral-600 rounded overflow-hidden">
-                        <span style={`width:${progressPercent}%`} class="transition-all animate-pulse bg-blue-600 absolute top-0 left-0 bottom-0"></span>
+                    <div class="relative w-full h-6 bg-neutral-600 rounded overflow-hidden">
+                        <span style={`width:${progressPercent}%`} class={`transition-all ${colorForProgress(progress)} absolute top-0 left-0 bottom-0`}></span>
+                        <span class="ml-auto text-2xs font-medium absolute top-1/2 -translate-y-1/2 left-1/2 -translate-x-1/2">
+                            {renderProgressInfo()}
+                        </span>
                     </div>
                 </div>
             </div>
@@ -184,8 +186,10 @@ export default defineComponent({
             if (this.status === RemoteResourceStatus.unknown) {
                 return null
             }
+
+            const allModels = this.resourcesState.previewModels.concat(this.resourcesState.upscaleModels)
             
-            const bytes = this.resourcesState.models.reduce((result, next) => {
+            const bytes = allModels.reduce((result, next) => {
                 result.downloaded_file_bytes += next.downloaded_file_bytes
                 result.total_file_bytes += next.total_file_bytes
                 return result
@@ -193,22 +197,31 @@ export default defineComponent({
 
             const cumulativeResource : RemoteResource = {
                 name: "All Models",
-                path: "",
+                path: "All Models",
                 downloaded_file_bytes: bytes.downloaded_file_bytes,
-                total_file_bytes: bytes.total_file_bytes,
+                total_file_bytes: bytes.downloaded_file_bytes,
                 revision: ""
             }
 
-            return <ul>
-                {this.resourcesState.models.map(resource => {
-                    return <li>
-                        {renderResourceInfo(resource)}
-                    </li> 
+            return <dl class="mt-2">
+                <dt class="flex justify-between gap-2 items-center">
+                    Preview Models 
+                    <DocumentPlusIcon onClick={this.showAddModelDialogue} class="inline w-5 h-5 hover:opacity-75 cursor-pointer" />
+                </dt>
+                {this.resourcesState.previewModels.map(model => {
+                    return <dd class="mt-2">{renderResourceInfo(model, model.path !== this.resourcesState.previewModels[0].path)}</dd>
                 })}
-                <li class="border-t border-neutral-700 mt-2">
+
+                <dt class="mt-4">Upscale Models</dt>
+                {this.resourcesState.upscaleModels.map(model => {
+                    return <dd class="mt-2">{renderResourceInfo(model)}</dd>
+                })}
+
+                <dt class="mt-4">Summary</dt>
+                <dd class="mt-2">
                    {renderResourceInfo(cumulativeResource)} 
-                </li>
-            </ul>
+                </dd>
+            </dl>
         }
         
         const renderAction = () => {
@@ -216,19 +229,19 @@ export default defineComponent({
                 return null
             }
 
-            if (this.status === RemoteResourceStatus.ready) {
+            if (this.resourcesState.previewModels.filter(model => model.downloaded_file_bytes < model.total_file_bytes).length === 0) {
                 return null
             }
             else {
                 if (this.resourcesState.isDownloading === false) {
                     return <Button onClick={this.startDownloading}
-                                    class="ml-auto text-green-600 border-green-600"
-                                    title="Start Downloading" />
+                                    class="ml-auto text-green-600 border-green-600 hover:bg-green-600"
+                                    title="Download Missing Models" />
                 }
                 else {
                     return <Button onClick={this.stopDownloading}
                                     class="ml-auto"
-                                    title="Pause Downloading" />
+                                    title="Pause Downloads" />
                 }
             }
         }
@@ -273,50 +286,15 @@ export default defineComponent({
                 {renderDataPathSelector()}
             </div>
         }
-
-        const renderModelSelector = () => {
-            const currentModelPath = this.resourcesState.models[0].path
-
-            return <div class="pb-2 border-b border-neutral-700">
-                 <h3 class="opacity-50 pb-2">Preview Model Configuration</h3>
-                 <div class="flex gap-4">
-                    <Dropdown class="z-[100]" onChange={this.updateSelectedModelPath} title={this.selectedModelPath}>
-                        <DropdownItem value={currentModelPath}>
-                            <div class="px-3 py-2.5 flex items-center justify-between font-bold">
-                                <span>{currentModelPath}</span>
-                                <span class="uppercase text-3xs font-bold px-1 border border-white rounded opacity-50">Current</span>
-                            </div>
-                        </DropdownItem>
-                        
-                        {this.resourcesState.availableModels.filter(model => currentModelPath !== model.path).map(model => {
-                            return <DropdownItem value={model.path}>
-                                <div class="px-3 py-2.5 flex items-center justify-between">
-                                    <span>{model.path}</span>
-                                </div>
-                            </DropdownItem>
-                        })}
-                    </Dropdown>
-
-                    <Button onClick={this.confirmSelectedModelPath}
-                                isLoading={this.resourcesState.isUpdatingModel}
-                                class="shrink-0"
-                                disabled={this.resourcesState.models[0].path === this.selectedModelPath}
-                                title="Update" />
-                </div>
-                <a onClick={this.openModelLink} class="mt-2 text-xs text-blue-500 hover:text-blue-400" href="#">
-                    Read more about <strong>{this.selectedModelPath}</strong> <ArrowTopRightOnSquareIcon class="inline w-3 h-3 relative bottom-0.5" />
-                </a>
-            </div>
-        }
  
         return <Modal class="w-3/4" closableWithBackground={true} title="Settings & Resources" close={this.$props.finish}>
             {renderDataPathInfo()}
-            
-            {renderModelSelector()}
-
+    
+            <div class="max-h-96 -mr-5 pr-5" style="overflow-y: overlay;">
             {renderAllResourcesInfo()}
+            </div>
 
-            <div class="flex mt-4 items-center">
+            <div class="flex mt-6 pt-6 -mx-6 px-6 items-center border-t border-gray-700">
                 <span class="mr-auto text-sm opacity-100"><StatusEntry isDetailed={true} /></span>
                 {renderAction()}
             </div>

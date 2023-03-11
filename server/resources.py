@@ -10,12 +10,13 @@ async def get_resources_status(request):
     manager = context.generator.models
 
     return json({
-        "models" : [model.to_dict() for model in manager.all_models],
-        "dataPath" : manager.url_for_data,
-        "isDownloading" : manager.is_downloading
+        "preview_models" : [model.to_dict() for model in manager.preview_models],
+        "upscale_models" : [model.to_dict() for model in manager.upscale_models],
+        "data_path" : manager.url_for_data,
+        "is_downloading" : manager.is_downloading
     })
 
-@resources.route("/start_downloading")
+@resources.route("/downloads/start")
 async def start_downloading(request):
     context.generator.models.start_downloading()
 
@@ -23,7 +24,7 @@ async def start_downloading(request):
         "status" : "ok"
     })
 
-@resources.route("/stop_downloading")
+@resources.route("/downloads/stop")
 async def stop_downloading(request):
     context.generator.models.stop_downloading()
 
@@ -31,41 +32,61 @@ async def stop_downloading(request):
         "status" : "ok"
     })
 
-@resources.route("/list_models")
-async def list_models(request):
-    models = await context.generator.models.fetch_all_compatible_models()
-
-    return json({
-        "models" : [model.to_dict() for model in models]
-    }) 
-
-@resources.post("/update_preview_model_path")
-async def update_preview_model_path(request):
+@resources.post("/add")
+async def add_model(request):
     input = request.json if request.json is not None else {}
-    path = input["path"] if "path" in input else None
+    id = input["id"] if "id" in input else None
 
-    if path is None:
+    if id is None:
         return json({
             "error" : "missing-field",
             "error-details" : {
-                "name" : "path"
+                "name" : "id"
             }
         })
     
-    revisions = await context.generator.models.fetch_model_revisions(path)
+    try:
+        await context.generator.models.add_preview_model(id)
 
-    if "fp16" in revisions:
-        revision = "fp16"
-    else:
-        revision = revisions[0]
+        return json({
+            "status" : "ok"
+        })
+    except Exception as e:
+        return json({
+            "error" : "invalid-model",
+            "error-details" : {
+                "text" : str(e)
+            }
+        })        
+    
+@resources.post("/remove")
+async def remove_model(request):
+    input = request.json if request.json is not None else {}
+    id = input["id"] if "id" in input else None
 
-    await context.generator.models.update_preview_model(path=path, revision=revision)
+    if id is None:
+        return json({
+            "error" : "missing-field",
+            "error-details" : {
+                "name" : "id"
+            }
+        })
+    
+    try:
+        await context.generator.models.remove_preview_model(id)
 
-    return json({
-        "status" : "ok"
-    })
+        return json({
+            "status" : "ok"
+        })
+    except Exception as e:
+        return json({
+            "error" : "invalid-model",
+            "error-details" : {
+                "text" : str(e)
+            }
+        })        
 
-@resources.post("/update_data_path")
+@resources.post("/data-path/update")
 async def update_data_path(request):
     input = request.json if request.json is not None else {}
 

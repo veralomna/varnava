@@ -76,7 +76,7 @@ export default defineComponent({
 
         const toggleArchived = async () => {
             const result = await modal.presentAlert({
-                title: "Archiving image",
+                title: "Archive Image",
                 description: "Are you sure you want to archive the image?",
                 actions: [
                     {

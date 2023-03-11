@@ -29,33 +29,35 @@ export interface RemoteResource {
 }
 
 export interface ResourcesState {
-    models : RemoteResource[]
-    availableModels : RemoteResource[]
+    previewModels : RemoteResource[]
+    upscaleModels : RemoteResource[]
     dataPath : string,
     isDownloading : boolean
-    isUpdatingModel : boolean
+    isAdding : boolean
+    isRemoving : boolean
 }
 
 export class ResourcesStore extends Store<ResourcesState> {
 
     protected data() : ResourcesState {
         return {
-            models : [],
-            availableModels : [],
+            previewModels : [],
+            upscaleModels : [],
             dataPath: "",
             isDownloading : false,
-            isUpdatingModel : false 
+            isAdding : false,
+            isRemoving : false
         }
     }
 
     public get status() {
         return computed(() => {
-            if (this.state.models.length === 0) {
+            if (this.state.previewModels.length === 0) {
                 return RemoteResourceStatus.unknown
             }
 
-            if (this.state.models.filter(model => model.downloaded_file_bytes < model.total_file_bytes ).length > 0) {
-                // Still need to download resources
+            if (this.state.previewModels.filter(model => model.downloaded_file_bytes === model.total_file_bytes ).length === 0) {
+                // Still need to download at least one model
                 if (this.state.isDownloading === false) {
                     return RemoteResourceStatus.needToLoad
                 }
@@ -77,7 +79,9 @@ export class ResourcesStore extends Store<ResourcesState> {
     }
 
     public isResourceReady(kind : RemoteResourceKind) {
-        const model = this.state.models.filter(model => model.name === kind)[0]
+        const models = kind === RemoteResourceKind.preview ? this.state.previewModels : this.state.upscaleModels
+
+        const model = models.filter(model => model.name === kind)[0]
 
         if (model.downloaded_file_bytes < model.total_file_bytes) {
             return false
@@ -89,58 +93,50 @@ export class ResourcesStore extends Store<ResourcesState> {
     public async fetch() {
         try {
             const result = await (await this.fetchApi("/resources")).json()
-            this.state.models = result["models"]
-            this.state.dataPath = result["dataPath"]
-            this.state.isDownloading = result["isDownloading"]
-
-            if (this.state.availableModels.length === 0) {
-                this.state.availableModels = [this.state.models[0]]
-            }
+            this.state.previewModels = result["preview_models"] ?? []
+            this.state.upscaleModels = result["upscale_models"] ?? []
+            this.state.isDownloading = result["is_downloading"] ?? false
+            this.state.dataPath = result["data_path"] ?? ""
         }
         catch (error) {
-            this.state.models = []
+            this.state.previewModels = []
+            this.state.upscaleModels = []
         }
     }
 
-    public async fetchAllModels(isForced : boolean = false) {
-        if (this.state.availableModels.length >= 2) {
-            return
-        }
-       
-        try {
-            const result = await (await this.fetchApi("/resources/list_models")).json()
-            this.state.availableModels = result["models"]
-        }
-        catch (error) {
-            this.state.availableModels = []
+    public async addModel(id : String) {
+        this.state.isAdding = true
+
+        const result = await(await this.fetchApi("/resources/add", {
+            method : "POST",
+            body : JSON.stringify({
+                "id" : id
+            })
+        })).json()
+
+        this.state.isAdding = false
+
+        if (typeof result["error"] !== "undefined") {
+            throw result["error-details"]["text"]
         }
     }
 
-    public async updatePreviewModel(path : String): Promise<Boolean> {
-        this.state.isUpdatingModel = true
+    public async deleteModel(id : String) {
+        this.state.isRemoving = true
 
-        try {
-            const result = await (await this.fetchApi("/resources/update_preview_model_path", {
-                method: "POST",
-                body: JSON.stringify({
-                    path
-                })
-            })).json()
+        const result = await(await this.fetchApi("/resources/remove", {
+            method : "POST",
+            body : JSON.stringify({
+                "id" : id
+            })
+        })).json()
 
-            this.state.isUpdatingModel = false
-
-            return result["status"] === "ok"
-        }
-        catch (error) {
-            this.state.isUpdatingModel = false
-            return false
-        }
-
+        this.state.isRemoving = false
     }
 
     public async startDownloading() {
         try {
-            await this.fetchApi("/resources/start_downloading")
+            await this.fetchApi("/resources/downloads/start")
         }
         catch (error) {
 
@@ -149,7 +145,7 @@ export class ResourcesStore extends Store<ResourcesState> {
     
     public async stopDownloading() {
         try {
-            await this.fetchApi("/resources/stop_downloading")
+            await this.fetchApi("/resources/downloads/stop")
         }
         catch (error) {
 
@@ -167,7 +163,7 @@ export class ResourcesStore extends Store<ResourcesState> {
 
     public async updateDataPath(path : string): Promise<DataPathUpdateStatus> {
         try {
-            const response = await this.fetchApi("/resources/update_data_path", {
+            const response = await this.fetchApi("/resources/data-path/update", {
                 method: "POST",
                 body: JSON.stringify({
                     path
