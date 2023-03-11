@@ -48,6 +48,12 @@ const buildBundle = async () => {
             target: ["nsis"],
         },
 
+        mac: {
+            target: ["dmg"],
+            hardenedRuntime: true,
+            identity: null,
+        },
+
         nsis: {
             artifactName: "${productName}-${version}.${ext}",
             oneClick: true,
@@ -58,7 +64,8 @@ const buildBundle = async () => {
     }
 
     await builder.build({
-        targets: Platform.WINDOWS.createTarget(),
+        mac: ["dmg"],
+        win: ["nsis"],
         config: options
     })
 }
