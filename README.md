@@ -63,12 +63,18 @@ https://user-images.githubusercontent.com/78038/221774536-99b9b8bd-2b29-4538-9ae
 
 <img src="https://user-images.githubusercontent.com/78038/221611689-9a566006-ff92-484a-aafb-bf6bf7a96e5d.png" width="530" />
 
+## Manage Models Efficiently
+
+> It is possible to install more than one text-to-image model from the hub and switch between them on a per image basis to iterate and compare results.
+
+https://user-images.githubusercontent.com/78038/224510050-e8413781-22cc-4165-9903-ea1ca941a718.mov
+
+
 ## Next Steps
 
-- [ ] Infinite upscaling via tiled upscaling
-- [ ] Painting canvas
+= [ ] ControlNet and image editing
+- [ ] Infinite upscaling
 - [ ] Fine-tuning support
-- [ ] Image to image support
 
 ## Contributors
 
