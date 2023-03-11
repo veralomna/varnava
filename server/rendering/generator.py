@@ -226,6 +226,9 @@ class ImageGenerator:
         if settings.type == ImageGeneratorTaskType.preview:
             model = self.models.get_preview_model_by_id(settings.model)
 
+            if model is None:
+                model = self.models.preview_models[0]
+
             if settings.seamless == 1:
                 init = torch.nn.Conv2d.__init__
                 def __init__(self, *args, **kwargs):

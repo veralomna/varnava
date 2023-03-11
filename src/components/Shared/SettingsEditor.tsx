@@ -300,6 +300,11 @@ export default defineComponent({
             const isDefault = this.additionalSettingsNames.every(name => {
                 const localValue = this.localSettings[name]
                 const entry = this.settingsState.settings.filter(entry => entry.name === name)[0]
+
+                if (typeof entry === "undefined") {
+                    return true
+                }
+
                 return localValue === entry.default
             })
 

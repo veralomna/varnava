@@ -63,11 +63,19 @@ const buildBundle = async () => {
         }
     }
 
-    await builder.build({
-        mac: ["dmg"],
-        win: ["nsis"],
-        config: options
-    })
+    if (process.platform === "darwin") {
+        await builder.build({
+            mac: ["dmg"],
+            win: ["nsis"],
+            config: options
+        })
+    }
+    else {
+        await builder.build({
+            win: ["nsis"],
+            config: options
+        })
+    }
 }
 
 const buildFrontend = async () => {
