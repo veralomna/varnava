@@ -72,7 +72,7 @@ https://user-images.githubusercontent.com/78038/224510050-e8413781-22cc-4165-990
 
 ## Next Steps
 
-= [ ] ControlNet and image editing
+- [ ] ControlNet and image editing
 - [ ] Infinite upscaling
 - [ ] Fine-tuning support
 
