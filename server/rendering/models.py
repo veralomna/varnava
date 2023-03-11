@@ -143,7 +143,7 @@ class ModelManager:
 
     async def add_preview_model(self, id):
         self.stop_downloading()
-        
+
         try: 
             info = self.api.list_repo_refs(id)
             revisions = [branch.name for branch in info.branches]
@@ -183,6 +183,11 @@ class ModelManager:
 
         if self.download_callback is not None:
             self.download_callback()
+
+    # Getting model info by its path (id)
+    def get_preview_model_by_id(self, id):
+        models = { model.path : model for model in self.preview_models }
+        return models.get(id)
 
     # Fetching remote resource information about file sizes
 

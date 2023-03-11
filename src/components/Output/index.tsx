@@ -126,7 +126,7 @@ export default defineComponent({
             return <li class="rounded flex text-left justify-leading pb-2">
                 <div>
                     <span class="lowercase block opacity-50">{name}</span>
-                    <strong class="whitespace-nowrap">{settingsStore.getSettingDisplayName(name, value)}</strong>
+                    <strong>{settingsStore.getSettingDisplayName(name, value)}</strong>
                 </div>
             </li>
         }

@@ -61,7 +61,7 @@ export default defineComponent({
             localSettings,
             localSettingsVisibility,
             settingsState : settingsStore.getState(),
-            additionalSettingsNames : ["seamless", "batch"],
+            additionalSettingsNames : ["seamless", "batch", "model"],
             onDocumentClick
         }
     },
@@ -132,7 +132,7 @@ export default defineComponent({
                 settingsStore.setLocalSettings(this.id, this.localSettings)
             }
 
-            return <div class="w-full p-4 text-sm text-gray-400">
+            return <div class="w-full p-4 text-sm text-gray-400 break-all">
                 {renderContentsHeader(entry)}
                 <ul class="grid grid-cols-1 gap-4">
                     {entry.values.map((value => {
@@ -283,7 +283,7 @@ export default defineComponent({
             let allSettings = this.settingsState.settings
                 .filter(entry => this.additionalSettingsNames.includes(entry.name) === true && entry.name !== "batch")
 
-            return <div class="p-4 w-64 text-sm text-gray-400 flex-col max-h-96 overflow-y-scroll no-scrollbar">
+            return <div class="p-4 w-72 text-sm text-gray-400 flex-col max-h-96 overflow-y-scroll no-scrollbar">
                  {allSettings.map(entry => {
                     return <div class="rounded border border-gray-600">
                         {renderContents(entry)}

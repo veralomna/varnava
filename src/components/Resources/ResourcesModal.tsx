@@ -166,9 +166,9 @@ export default defineComponent({
             const progress = resource.downloaded_file_bytes / resource.total_file_bytes
             const progressPercent = Math.round(progress * 100)
 
-            return <div class="pt-2 font-mono text-sm">
+            return <div class="font-mono text-sm rounded border border-neutral-700 p-3">
                 <div class="flex justify-between">
-                    <span class="text-xs opacity-75">{resource.path}</span>
+                    <span class="text-2xs opacity-75 overflow-hidden truncate">{resource.path}</span>
                     {isDeletable === true ? <TrashIcon onClick={() => this.deleteModel(resource.path)} class="w-4 h-4 text-red-500 cursor-pointer hover:opacity-75" /> : null}
                 </div>
                 <div class="mt-2">
@@ -195,33 +195,27 @@ export default defineComponent({
                 return result
             }, { total_file_bytes: 0, downloaded_file_bytes: 0 })
 
-            const cumulativeResource : RemoteResource = {
-                name: "All Models",
-                path: "All Models",
-                downloaded_file_bytes: bytes.downloaded_file_bytes,
-                total_file_bytes: bytes.downloaded_file_bytes,
-                revision: ""
-            }
-
-            return <dl class="mt-2">
-                <dt class="flex justify-between gap-2 items-center">
+            return <div>
+                <h3 class="mt-2 flex justify-start gap-2 items-center">
                     Preview Models 
                     <DocumentPlusIcon onClick={this.showAddModelDialogue} class="inline w-5 h-5 hover:opacity-75 cursor-pointer" />
-                </dt>
-                {this.resourcesState.previewModels.map(model => {
-                    return <dd class="mt-2">{renderResourceInfo(model, model.path !== this.resourcesState.previewModels[0].path)}</dd>
-                })}
+                </h3>
 
-                <dt class="mt-4">Upscale Models</dt>
-                {this.resourcesState.upscaleModels.map(model => {
-                    return <dd class="mt-2">{renderResourceInfo(model)}</dd>
-                })}
+                <ul class="mt-2 grid grid-cols-2 grid-flow-row gap-4">
+                    {this.resourcesState.previewModels.map(model => {
+                        return <li>{renderResourceInfo(model, model.path !== this.resourcesState.previewModels[0].path)}</li>
+                    })}
+                </ul>
 
-                <dt class="mt-4">Summary</dt>
-                <dd class="mt-2">
-                   {renderResourceInfo(cumulativeResource)} 
-                </dd>
-            </dl>
+                <h3 class="mt-4">Upscale Models</h3>
+
+                <ul class="mt-2 grid grid-cols-2 grid-flow-row gap-4">
+                    {this.resourcesState.upscaleModels.map(model => {
+                        return <li>{renderResourceInfo(model)}</li>
+                    })}
+                </ul>
+
+            </div>
         }
         
         const renderAction = () => {

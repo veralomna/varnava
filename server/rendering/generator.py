@@ -26,6 +26,7 @@ class ImageGeneratorTaskUpscaleSettings(DataClassDictMixin):
 
 @dataclass
 class ImageGeneratorTaskSettings(DataClassDictMixin):
+    model : str = ""
     seed : int = -1
     dimensions : float = 1.0
     batch : int = 2
@@ -43,7 +44,7 @@ class ImageGeneratorTaskSettings(DataClassDictMixin):
         if not isinstance(other, ImageGeneratorTaskSettings):
             return False
         
-        return self.method == other.method and self.type.value == other.type.value and self.seamless == other.seamless
+        return self.model == other.model and self.method == other.method and self.type.value == other.type.value and self.seamless == other.seamless
 
 @dataclass
 class ImageGeneratorOutput:
@@ -222,7 +223,9 @@ class ImageGenerator:
         
         torch.nn.Conv2d.__init__ = self._original_conv_init
 
-        if settings.type == ImageGeneratorTaskType.preview:            
+        if settings.type == ImageGeneratorTaskType.preview:
+            model = self.models.get_preview_model_by_id(settings.model)
+
             if settings.seamless == 1:
                 init = torch.nn.Conv2d.__init__
                 def __init__(self, *args, **kwargs):
@@ -230,9 +233,9 @@ class ImageGenerator:
                 torch.nn.Conv2d.__init__ = __init__
 
             pipe = StableDiffusionPipeline.from_pretrained(
-                self.models.preview_model.path,
+                model.path,
                 torch_dtype=torch.float16 if self.device_name == "cuda" else torch.float32, 
-                revision=self.models.preview_model.revision,
+                revision=model.revision,
                 safety_checker=None,
                 cache_dir=self.models.url_for_models,
                 local_files_only=True
@@ -240,7 +243,7 @@ class ImageGenerator:
 
         elif settings.type == ImageGeneratorTaskType.upscale:
             pipe = StableDiffusionUpscalePipeline.from_pretrained(
-                self.models.upscale_model.path,
+                self.models.upscale_models[0].path,
                 torch_dtype=torch.float16 if self.device_name == "cuda" else torch.float32, 
                 revision=self.models.upscale_model.revision,
                 cache_dir=self.models.url_for_models,

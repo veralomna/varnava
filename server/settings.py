@@ -7,12 +7,22 @@ settings = Blueprint("settings")
 # Listing all possible prompts settings
 @settings.get("/settings/prompts")
 async def list_prompts_settings(request):
+    manager = context.generator.models
+
+    ids = [model.path for model in manager.preview_models if model.total_file_bytes == model.downloaded_file_bytes]
+
     return json({
         "constants" : {
             "base_dimension" : context.generator.base_dimension,
             "upscaled_dimension" : context.generator.upscaled_dimension,
         },
         "settings" : [
+            {
+                "name" : "model",
+                "type" : "array",
+                "values" : ids,
+                "default" : ids[0]
+            },
             {
                 "name" : "dimensions",
                 "type" : "range",
