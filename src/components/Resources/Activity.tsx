@@ -103,14 +103,22 @@ export default defineComponent({
         }
         
         const renderActivityList = () => {
-            return <div data-activitiy-list="true" class={`${this.isOpen === true ? "visible opacity-100" : "invisible opacity-0"} transition-all absolute top-9 left-1/2 shadow-2xl shadow-black w-80`} style="transform: translateX(-50%)">
-                <div class="relative left-1/2 -ml-2 w-4 border-solid border-b-neutral-800 border-b-8 border-x-transparent border-x-8 border-t-0" />
-                <ul class="divide-y divide-neutral-700/50 divide-solid max-h-110 bg-neutral-800 rounded z-50 overflow-y-scroll" style="overflow:overlay;">
-                {this.activityState.outputs.map(output => {
+            const renderEmptyItems = () => {
+                return <div class="opacity-50 p-12 text-center">No outputs generated yet.</div>
+            }
+
+            const renderAllItems = () => {
+                return this.activityState.outputs.map(output => {
                     return <li onClick={() => { this.showOutput(output) }} class="px-2 hover:bg-neutral-700/25 cursor-pointer">
                         {renderActivityEntry(output)}
                     </li>
-                })}
+                })
+            }
+
+            return <div data-activitiy-list="true" class={`${this.isOpen === true ? "visible opacity-100" : "invisible opacity-0"} transition-all absolute top-9 left-1/2 shadow-2xl shadow-black w-80`} style="transform: translateX(-50%)">
+                <div class="relative left-1/2 -ml-2 w-4 border-solid border-b-neutral-800 border-b-8 border-x-transparent border-x-8 border-t-0" />
+                <ul class="divide-y divide-neutral-700/50 divide-solid max-h-110 bg-neutral-800 rounded z-50 overflow-y-scroll" style="overflow:overlay;">
+                {this.activityState.outputs.length === 0 ? renderEmptyItems() : renderAllItems()}
                 </ul>
             </div>
         }
@@ -123,7 +131,6 @@ export default defineComponent({
                 <ClockIcon class={`w-4 h-4 ${this.unfinishedOutputsCount > 0 ? "mr-1 animate-wiggle" : ""} transform-gpu`} /> {this.unfinishedOutputsCount > 0 ? this.unfinishedOutputsCount : ""}
             </div>
             {renderActivityList()}
-
         </div>
     }
 

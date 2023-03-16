@@ -23,7 +23,7 @@ Varnava is a neural art management tool powered by Stable Diffusion. Varnava is 
   - GPU with CUDA support and at least 8GB of VRAM
 - macOS 12.0+
   - M1/M2 SoC with at least 15GB of RAM
-- 21GB of disk space (4GB for runtime and 17GB for Stable Diffusion models)
+- 8GB of disk space (4GB for runtime and 4GB for base Stable Diffusion models)
 
 The following setups have been tested so far:
 
@@ -40,7 +40,7 @@ The following setups have been tested so far:
 
 1. Download the installer from the releases page on Github and run the installer.
 2. Varnava will download necessary dependencies on the first launch (it will take a while, please have patience).
-3. Go to *Models* dialog, select a directory where you want to store Stable Diffusion models and start downloading them (it will take a while to download about 17GB of models).
+3. Press the *Waiting to download* top-right button, select a directory where you want to store Stable Diffusion models and start downloading them (it will take a while to download about 2.4GB of base model and 1.5GB of upscaling model).
 4. Create a new project, add a prompt to your project and start generating!
 
 ## Usage

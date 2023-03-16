@@ -11,6 +11,9 @@ async def list_prompts_settings(request):
 
     ids = [model.path for model in manager.preview_models if model.total_file_bytes == model.downloaded_file_bytes]
 
+    if len(ids) == 0:
+        ids = [manager.default_preview_model.path]
+
     return json({
         "constants" : {
             "base_dimension" : context.generator.base_dimension,

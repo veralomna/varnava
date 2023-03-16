@@ -3,7 +3,7 @@
   "description": "Varnava is an asset curation tool powered by Stable Diffusion.",
   "author": "VERALOMNA",
   "private": true,
-  "version": "1.0.3",
+  "version": "1.0.4",
   "type": "module",
   "main": "app.cjs",
   "scripts": {

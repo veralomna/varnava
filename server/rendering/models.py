@@ -245,7 +245,10 @@ class ModelManager:
             self.preview_models[index].downloaded_file_bytes = ref.size_on_disk
 
         for index, resource in enumerate(self.upscale_models):
-            ref = repos[resource.path].refs[resource.revision]
+            try:
+                ref = repos[resource.path].refs[resource.revision]
+            except:
+                continue
 
             if ref is None:
                 continue
